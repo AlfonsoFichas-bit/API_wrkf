@@ -1,4 +1,3 @@
-
 package models
 
 import (
@@ -7,16 +6,16 @@ import (
 )
 
 type Report struct {
-	ID                   uint            `gorm:"primaryKey"`
-	Title                string          `gorm:"not null"`
+	ID                   uint   `gorm:"primaryKey"`
+	Title                string `gorm:"not null"`
 	Description          string
-	Type                 string          `gorm:"not null"`
+	Type                 string `gorm:"not null"`
 	ProjectID            *uint
-	Project              *Project        `gorm:"foreignKey:ProjectID"`
+	Project              *Project `gorm:"foreignKey:ProjectID"`
 	SprintID             *uint
-	Sprint               *Sprint         `gorm:"foreignKey:SprintID"`
+	Sprint               *Sprint `gorm:"foreignKey:SprintID"`
 	UserID               *uint
-	User                 *User           `gorm:"foreignKey:UserID"`
+	User                 *User `gorm:"foreignKey:UserID"`
 	StartDate            *time.Time
 	EndDate              *time.Time
 	IncludeBurndown      *bool
@@ -34,14 +33,14 @@ type Report struct {
 }
 
 type ScheduledReport struct {
-	ID             uint      `gorm:"primaryKey"`
-	ReportConfigID uint      `gorm:"not null"`
-	ReportConfig   Report    `gorm:"foreignKey:ReportConfigID"`
-	Frequency      string    `gorm:"not null"`
+	ID             uint   `gorm:"primaryKey"`
+	ReportConfigID uint   `gorm:"not null"`
+	ReportConfig   Report `gorm:"foreignKey:ReportConfigID"`
+	Frequency      string `gorm:"not null"`
 	NextRunTime    *time.Time
-	CreatedByID    uint      `gorm:"not null"`
-	CreatedBy      User      `gorm:"foreignKey:CreatedByID"`
-	Recipients     []string  `gorm:"type:text[]"`
+	CreatedByID    uint     `gorm:"not null"`
+	CreatedBy      User     `gorm:"foreignKey:CreatedByID"`
+	Recipients     []string `gorm:"type:text[]"`
 	LastRunTime    *time.Time
 	LastReportID   *uint
 	LastReport     *Report   `gorm:"foreignKey:LastReportID"`
@@ -84,9 +83,9 @@ type SprintMetric struct {
 }
 
 type UserMetric struct {
-	ID                uint      `gorm:"primaryKey"`
-	UserID            uint      `gorm:"not null"`
-	User              User      `gorm:"foreignKey:UserID"`
+	ID                uint `gorm:"primaryKey"`
+	UserID            uint `gorm:"not null"`
+	User              User `gorm:"foreignKey:UserID"`
 	SprintID          *uint
 	Sprint            *Sprint   `gorm:"foreignKey:SprintID"`
 	Date              time.Time `gorm:"not null"`

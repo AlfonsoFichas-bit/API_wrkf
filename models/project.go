@@ -1,13 +1,12 @@
-
 package models
 
 import "time"
 
 type Project struct {
-	ID          uint      `gorm:"primaryKey"`
-	Name        string    `gorm:"not null"`
+	ID          uint   `gorm:"primaryKey"`
+	Name        string `gorm:"not null"`
 	Description string
-	Status      string    `gorm:"not null;default:'planning'"`
+	Status      string `gorm:"not null;default:'planning'"`
 	StartDate   *time.Time
 	EndDate     *time.Time
 	CreatedByID uint      `gorm:"not null"`

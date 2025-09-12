@@ -1,15 +1,14 @@
-
 package models
 
 import "time"
 
 type Sprint struct {
-	ID          uint      `gorm:"primaryKey"`
-	Name        string    `gorm:"not null"`
+	ID          uint   `gorm:"primaryKey"`
+	Name        string `gorm:"not null"`
 	Goal        string
-	ProjectID   uint      `gorm:"not null"`
-	Project     Project   `gorm:"foreignKey:ProjectID"`
-	Status      string    `gorm:"not null;default:'planned'"`
+	ProjectID   uint    `gorm:"not null"`
+	Project     Project `gorm:"foreignKey:ProjectID"`
+	Status      string  `gorm:"not null;default:'planned'"`
 	StartDate   *time.Time
 	EndDate     *time.Time
 	CreatedByID uint      `gorm:"not null"`

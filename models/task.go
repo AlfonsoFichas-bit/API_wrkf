@@ -1,17 +1,16 @@
-
 package models
 
 import "time"
 
 type Task struct {
-	ID             uint      `gorm:"primaryKey"`
-	Title          string    `gorm:"not null"`
+	ID             uint   `gorm:"primaryKey"`
+	Title          string `gorm:"not null"`
 	Description    string
 	UserStoryID    uint      `gorm:"not null"`
 	UserStory      UserStory `gorm:"foreignKey:UserStoryID"`
 	Status         string    `gorm:"not null;default:'todo'"`
 	AssignedToID   *uint
-	AssignedTo     *User     `gorm:"foreignKey:AssignedToID"`
+	AssignedTo     *User `gorm:"foreignKey:AssignedToID"`
 	EstimatedHours *int
 	SpentHours     *int
 	IsDeliverable  bool      `gorm:"default:false"`
@@ -24,11 +23,11 @@ type Task struct {
 }
 
 type TaskHistory struct {
-	ID          uint      `gorm:"primaryKey"`
-	TaskID      uint      `gorm:"not null"`
-	UserID      uint      `gorm:"not null"`
-	User        User      `gorm:"foreignKey:UserID"`
-	Type        string    `gorm:"not null"`
+	ID          uint   `gorm:"primaryKey"`
+	TaskID      uint   `gorm:"not null"`
+	UserID      uint   `gorm:"not null"`
+	User        User   `gorm:"foreignKey:UserID"`
+	Type        string `gorm:"not null"`
 	Field       string
 	OldValue    string
 	NewValue    string

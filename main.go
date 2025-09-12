@@ -1,4 +1,3 @@
-
 package main
 
 import (
@@ -14,20 +13,20 @@ import (
 )
 
 func main() {
-	// Load application configuration from environment variables
+	// Cargar la configuración de la aplicación desde las variables de entorno
 	cfg := config.LoadConfig()
 
 	// Create a new database connection
 	db, err := storage.NewConnection(cfg.DB)
 	if err != nil {
-		log.Fatalf("could not connect to database: %v", err)
+		log.Fatalf("No se pudo conectar a la base de datos: %v", err)
 	}
 
-	fmt.Println("Successfully connected to the database!")
+	fmt.Println("Se conecto con exito a la db")
 
 	// Run database migrations
 	if err := storage.Migrate(db); err != nil {
-		log.Fatalf("could not migrate database: %v", err)
+		log.Fatalf("No se pudo migrar la base de datos: %v", err)
 	}
 
 	fmt.Println("Database migration completed successfully!")

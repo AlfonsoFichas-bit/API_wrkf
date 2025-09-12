@@ -1,17 +1,16 @@
-
 package models
 
 import "time"
 
 type Conversation struct {
-	ID            uint      `gorm:"primaryKey"`
-	Type          string    `gorm:"not null"`
+	ID            uint   `gorm:"primaryKey"`
+	Type          string `gorm:"not null"`
 	Name          string
 	Description   string
 	ProjectID     *uint
-	Project       *Project  `gorm:"foreignKey:ProjectID"`
-	CreatedByID   uint      `gorm:"not null"`
-	CreatedBy     User      `gorm:"foreignKey:CreatedByID"`
+	Project       *Project `gorm:"foreignKey:ProjectID"`
+	CreatedByID   uint     `gorm:"not null"`
+	CreatedBy     User     `gorm:"foreignKey:CreatedByID"`
 	LastMessageAt *time.Time
 	IsActive      bool      `gorm:"default:true"`
 	CreatedAt     time.Time `gorm:"autoCreateTime"`
