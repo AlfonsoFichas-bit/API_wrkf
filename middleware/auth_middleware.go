@@ -9,8 +9,8 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-JWTAuthMiddleware crea y devuelve un middleware JWT que valida los tokens.
-// using the provided secret key.
+// JWTAuthMiddleware crea y devuelve un middleware JWT que valida los tokens
+// usando clave secreta
 func JWTAuthMiddleware(secret string) echo.MiddlewareFunc {
 	jwtSecret := []byte(secret)
 
