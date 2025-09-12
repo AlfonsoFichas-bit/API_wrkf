@@ -39,7 +39,7 @@ Este proyecto es una API REST robusta y escalable construida con Go, utilizando 
 
 1.  **Clonar el repositorio:**
     ```sh
-    git clone <url-de-tu-repositorio>
+    git clone https://github.com/AlfonsoFichas-bit/API_wrkf.git
     cd API_wrkf
     ```
 
