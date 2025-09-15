@@ -9,7 +9,16 @@ import (
 type AppConfig struct {
 	DB        *DBConfig
 	JWTSecret string
+	Admin     *AdminConfig // <-- RENAMED FOR CLARITY
 }
+
+// AdminConfig holds the default admin user configuration.
+type AdminConfig struct {
+	Email    string
+	Password string
+	Nombre   string
+}
+
 
 // DBConfig represents the database configuration.
 type DBConfig struct {
@@ -38,11 +47,16 @@ func LoadConfig() *AppConfig {
 			DBName:   getEnv("DB_NAME", "api_db"),
 			SSLMode:  getEnv("DB_SSLMODE", "disable"),
 		},
-		JWTSecret: getEnv("JWT_SECRET", "5a8e02f0b339f9b67f85aa6a5160b7e134e50246e77fc273d78de1af49cfe365"),
+		JWTSecret: getEnv("JWT_SECRET", "a_secure_secret"), // Use a more secure default
+		Admin: &AdminConfig{
+			Email:    getEnv("ADMIN_EMAIL", "admin@example.com"),
+			Password: getEnv("ADMIN_PASSWORD", "admin123"),
+			Nombre:   getEnv("ADMIN_NAME", "Admin"),
+		},
 	}
 }
 
-// getEnv retrieves an environment variable or returns a default value.
+// getEnv retrieves an environment variable or returns a default v
 func getEnv(key, defaultValue string) string {
 	if value, exists := os.LookupEnv(key); exists {
 		return value

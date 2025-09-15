@@ -58,6 +58,11 @@ func (s *UserService) GetUserByID(id uint) (*models.User, error) {
 	return s.Repo.GetUserByID(id)
 }
 
+// GetUserByEmail retrieves a user by their email address.
+func (s *UserService) GetUserByEmail(email string) (*models.User, error) {
+	return s.Repo.GetUserByEmail(email)
+}
+
 func (s *UserService) Login(email, password string) (string, error) {
 	user, err := s.Repo.GetUserByEmail(email)
 	if err != nil {
