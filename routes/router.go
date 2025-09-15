@@ -1,4 +1,3 @@
-
 package routes
 
 import (
@@ -8,7 +7,7 @@ import (
 )
 
 // SetupRoutes configures the application routes.
-func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler *handlers.ProjectHandler, jwtSecret string) {
+func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler *handlers.ProjectHandler, sprintHandler *handlers.SprintHandler, jwtSecret string) {
 	// --- Public Routes ---
 	e.POST("/login", userHandler.Login)
 
@@ -25,6 +24,12 @@ func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler
 	api.GET("/projects/:id", projectHandler.GetProjectByID)
 	api.PUT("/projects/:id", projectHandler.UpdateProject)       // <-- NEW
 	api.DELETE("/projects/:id", projectHandler.DeleteProject) // <-- NEW
+
+	// Sprint routes
+	// Assuming sprints are managed within the context of a project,
+	// but for now, we'll use a general /api/sprints endpoint.
+	// A better approach might be /api/projects/:projectId/sprints
+	api.POST("/sprints", sprintHandler.CreateSprint)
 
 	// --- Admin-Only Routes ---
 	admin := e.Group("/api/admin")

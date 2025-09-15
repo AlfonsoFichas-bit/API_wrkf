@@ -82,10 +82,15 @@ func main() {
 	projectService := services.NewProjectService(projectRepo)
 	projectHandler := handlers.NewProjectHandler(projectService)
 
+	// Sprint components
+	sprintRepo := storage.NewSprintRepository(db)
+	sprintService := services.NewSprintService(sprintRepo)
+	sprintHandler := handlers.NewSprintHandler(sprintService)
+
 	// --- Initialize Echo and Set Up Routes ---
 	e := echo.New()
 	// Pass all handlers to the router setup function
-	routes.SetupRoutes(e, userHandler, projectHandler, cfg.JWTSecret)
+	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, cfg.JWTSecret)
 
 	// --- Start Server ---
 	fmt.Println("Starting server on port 8080...")
