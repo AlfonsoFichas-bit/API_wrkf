@@ -1,3 +1,4 @@
+
 package services
 
 import (
@@ -22,14 +23,34 @@ func NewUserService(repo *storage.UserRepository, jwtSecret string) *UserService
 	}
 }
 
-func (s *UserService) CreateUser(user *models.User) error {
-	// Hashear la contraseña antes de guardarla
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Contraseña), bcrypt.DefaultCost)
+// hashPassword is a helper function to hash passwords.
+func hashPassword(password string) (string, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
+	}
+	return string(hashedPassword), nil
+}
+
+// CreateAdminUser creates a new user with the admin platform role.
+func (s *UserService) CreateAdminUser(user *models.User) error {
+	hashedPass, err := hashPassword(user.Contraseña)
 	if err != nil {
 		return err
 	}
-	user.Contraseña = string(hashedPassword)
+	user.Contraseña = hashedPass
+	user.Role = string(models.RoleAdmin) // Use the constant for admin
+	return s.Repo.CreateUser(user)
+}
 
+// CreateUser creates a new user with the default 'user' platform role.
+func (s *UserService) CreateUser(user *models.User) error {
+	hashedPass, err := hashPassword(user.Contraseña)
+	if err != nil {
+		return err
+	}
+	user.Contraseña = hashedPass
+	// The role will be set to the default 'user' by the database.
 	return s.Repo.CreateUser(user)
 }
 
@@ -37,32 +58,26 @@ func (s *UserService) GetUserByID(id uint) (*models.User, error) {
 	return s.Repo.GetUserByID(id)
 }
 
-// Login verifies user credentials and returns a JWT token if they are valid.
 func (s *UserService) Login(email, password string) (string, error) {
-	// Find user by email
 	user, err := s.Repo.GetUserByEmail(email)
 	if err != nil {
 		return "", errors.New("invalid credentials")
 	}
 
-	// Compare the provided password with the stored hash
 	err = bcrypt.CompareHashAndPassword([]byte(user.Contraseña), []byte(password))
 	if err != nil {
-		// If passwords don't match, return the same generic error
 		return "", errors.New("invalid credentials")
 	}
 
-	// --- Generate JWT Token ---
 	claims := jwt.MapClaims{
 		"sub": user.ID,
 		"nam": user.Nombre,
+		"rol": user.Role, // This now correctly reflects the platform role
 		"exp": time.Now().Add(time.Hour * 72).Unix(),
 		"iat": time.Now().Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	// Sign the token with the secret key from the service struct
 	tokenString, err := token.SignedString(s.jwtSecret)
 	if err != nil {
 		return "", err

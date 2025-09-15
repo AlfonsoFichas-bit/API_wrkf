@@ -1,3 +1,4 @@
+
 package middleware
 
 import (
@@ -9,8 +10,8 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// JWTAuthMiddleware crea y devuelve un middleware JWT que valida los tokens
-// usando clave secreta
+// JWTAuthMiddleware creates and returns a JWT middleware that validates tokens
+// using the provided secret key.
 func JWTAuthMiddleware(secret string) echo.MiddlewareFunc {
 	jwtSecret := []byte(secret)
 
@@ -43,6 +44,7 @@ func JWTAuthMiddleware(secret string) echo.MiddlewareFunc {
 			if ok {
 				c.Set("userID", claims["sub"])
 				c.Set("userName", claims["nam"])
+				c.Set("userRole", claims["rol"]) // <-- EXTRACT ROLE
 			}
 
 			return next(c)

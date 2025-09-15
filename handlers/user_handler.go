@@ -1,3 +1,4 @@
+
 package handlers
 
 import (
@@ -32,7 +33,6 @@ func (h *UserHandler) Login(c echo.Context) error {
 
 	token, err := h.Service.Login(req.Correo, req.Contraseña)
 	if err != nil {
-		// The service returns a generic "invalid credentials" error
 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": err.Error()})
 	}
 
@@ -41,7 +41,22 @@ func (h *UserHandler) Login(c echo.Context) error {
 	})
 }
 
-// CreateUser handles the creation of a new user.
+// CreateAdminUser handles the creation of a new admin user.
+func (h *UserHandler) CreateAdminUser(c echo.Context) error {
+	user := new(models.User)
+	if err := c.Bind(user); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid input"})
+	}
+
+	if err := h.Service.CreateAdminUser(user); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not create admin user", "details": err.Error()})
+	}
+
+	user.Contraseña = ""
+	return c.JSON(http.StatusCreated, user)
+}
+
+// CreateUser handles the creation of a new standard platform user.
 func (h *UserHandler) CreateUser(c echo.Context) error {
 	user := new(models.User)
 	if err := c.Bind(user); err != nil {
@@ -49,9 +64,10 @@ func (h *UserHandler) CreateUser(c echo.Context) error {
 	}
 
 	if err := h.Service.CreateUser(user); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not create user"})
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not create user", "details": err.Error()})
 	}
 
+	user.Contraseña = ""
 	return c.JSON(http.StatusCreated, user)
 }
 
@@ -67,5 +83,6 @@ func (h *UserHandler) GetUser(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": "User not found"})
 	}
 
+	user.Contraseña = ""
 	return c.JSON(http.StatusOK, user)
 }
