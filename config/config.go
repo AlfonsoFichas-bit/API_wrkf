@@ -19,7 +19,6 @@ type AdminConfig struct {
 	Nombre   string
 }
 
-
 // DBConfig represents the database configuration.
 type DBConfig struct {
 	Host     string

@@ -3,6 +3,7 @@ package routes
 import (
 	"API_wrkf/handlers"
 	"API_wrkf/middleware"
+
 	"github.com/labstack/echo/v4"
 )
 
@@ -22,7 +23,7 @@ func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler
 	api.POST("/projects", projectHandler.CreateProject)
 	api.GET("/projects", projectHandler.GetAllProjects)
 	api.GET("/projects/:id", projectHandler.GetProjectByID)
-	api.PUT("/projects/:id", projectHandler.UpdateProject)       // <-- NEW
+	api.PUT("/projects/:id", projectHandler.UpdateProject)    // <-- NEW
 	api.DELETE("/projects/:id", projectHandler.DeleteProject) // <-- NEW
 
 	// Sprint routes
