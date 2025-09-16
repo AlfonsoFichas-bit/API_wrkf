@@ -1,9 +1,10 @@
 package storage
 
 import (
-	"API_wrkf/config"
-	"API_wrkf/models"
 	"fmt"
+
+	"github.com/buga/API_wrkf/config"
+	"github.com/buga/API_wrkf/models"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

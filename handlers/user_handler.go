@@ -1,18 +1,21 @@
+
 package handlers
 
 import (
-	"API_wrkf/models"
-	"API_wrkf/services"
 	"net/http"
 	"strconv"
+
+	"github.com/buga/API_wrkf/models"
+	"github.com/buga/API_wrkf/services"
 
 	"github.com/labstack/echo/v4"
 )
 
 // LoginRequest defines the structure for a login request.
+// The order of fields and example values are set for Swagger UI convenience.
 type LoginRequest struct {
-	Correo     string `json:"correo"`
-	Contraseña string `json:"contraseña"`
+	Correo     string `json:"correo" example:"admin@example.com"`
+	Contraseña string `json:"contraseña" example:"admin123"`
 }
 
 type UserHandler struct {
@@ -23,7 +26,17 @@ func NewUserHandler(service *services.UserService) *UserHandler {
 	return &UserHandler{Service: service}
 }
 
-// Login handles user login and token generation.
+// Login godoc
+// @Summary      User Login
+// @Description  Authenticates a user and returns a JWT token.
+// @Tags         Authentication
+// @Accept       json
+// @Produce      json
+// @Param        credentials  body      LoginRequest  true  "User Credentials"
+// @Success      200          {object}  map[string]string
+// @Failure      400          {object}  map[string]string
+// @Failure      401          {object}  map[string]string
+// @Router       /login [post]
 func (h *UserHandler) Login(c echo.Context) error {
 	req := new(LoginRequest)
 	if err := c.Bind(req); err != nil {
@@ -82,6 +95,5 @@ func (h *UserHandler) GetUser(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": "User not found"})
 	}
 
-	user.Contraseña = ""
 	return c.JSON(http.StatusOK, user)
 }

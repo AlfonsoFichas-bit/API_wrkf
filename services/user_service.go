@@ -1,10 +1,12 @@
+
 package services
 
 import (
-	"API_wrkf/models"
-	"API_wrkf/storage"
 	"errors"
 	"time"
+
+	"github.com/buga/API_wrkf/models"
+	"github.com/buga/API_wrkf/storage"
 
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
@@ -57,7 +59,6 @@ func (s *UserService) GetUserByID(id uint) (*models.User, error) {
 	return s.Repo.GetUserByID(id)
 }
 
-// GetUserByEmail retrieves a user by their email address.
 func (s *UserService) GetUserByEmail(email string) (*models.User, error) {
 	return s.Repo.GetUserByEmail(email)
 }

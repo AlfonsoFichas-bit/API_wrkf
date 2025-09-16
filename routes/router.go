@@ -1,14 +1,19 @@
+
 package routes
 
 import (
-	"API_wrkf/handlers"
-	"API_wrkf/middleware"
+	"github.com/buga/API_wrkf/handlers"
+	"github.com/buga/API_wrkf/middleware"
 
 	"github.com/labstack/echo/v4"
+	echoSwagger "github.com/swaggo/echo-swagger" // Import echo-swagger
 )
 
 // SetupRoutes configures the application routes.
-func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler *handlers.ProjectHandler, sprintHandler *handlers.SprintHandler, jwtSecret string) {
+func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler *handlers.ProjectHandler, sprintHandler *handlers.SprintHandler, userStoryHandler *handlers.UserStoryHandler, jwtSecret string) {
+	// --- Swagger Route ---
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
+
 	// --- Public Routes ---
 	e.POST("/login", userHandler.Login)
 
@@ -23,13 +28,16 @@ func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler
 	api.POST("/projects", projectHandler.CreateProject)
 	api.GET("/projects", projectHandler.GetAllProjects)
 	api.GET("/projects/:id", projectHandler.GetProjectByID)
-	api.PUT("/projects/:id", projectHandler.UpdateProject)    // <-- NEW
-	api.DELETE("/projects/:id", projectHandler.DeleteProject) // <-- NEW
+	api.PUT("/projects/:id", projectHandler.UpdateProject)
+	api.DELETE("/projects/:id", projectHandler.DeleteProject)
+
+	// User Story routes
+	api.POST("/projects/:id/userstories", userStoryHandler.CreateUserStory)
+	api.GET("/projects/:id/userstories", userStoryHandler.GetUserStoriesByProjectID)
+	api.PUT("/userstories/:storyId", userStoryHandler.UpdateUserStory)       // <-- NEW
+	api.DELETE("/userstories/:storyId", userStoryHandler.DeleteUserStory) // <-- NEW
 
 	// Sprint routes
-	// Assuming sprints are managed within the context of a project,
-	// but for now, we'll use a general /api/sprints endpoint.
-	// A better approach might be /api/projects/:projectId/sprints
 	api.POST("/sprints", sprintHandler.CreateSprint)
 
 	// --- Admin-Only Routes ---

@@ -1,8 +1,8 @@
+
 package storage
 
 import (
-	"API_wrkf/models"
-
+	"github.com/buga/API_wrkf/models"
 	"gorm.io/gorm"
 )
 
@@ -53,4 +53,14 @@ func (r *ProjectRepository) DeleteProjectMembersByProjectID(tx *gorm.DB, project
 // DeleteProject removes a project from the database by its ID.
 func (r *ProjectRepository) DeleteProject(tx *gorm.DB, projectID uint) error {
 	return tx.Delete(&models.Project{}, projectID).Error
+}
+
+// GetUserRoleInProject finds a user's specific role within a single project.
+func (r *ProjectRepository) GetUserRoleInProject(userID, projectID uint) (string, error) {
+	var member models.ProjectMember
+	err := r.DB.Where("user_id = ? AND project_id = ?", userID, projectID).First(&member).Error
+	if err != nil {
+		return "", err // Could be gorm.ErrRecordNotFound, which is fine
+	}
+	return member.Role, nil
 }

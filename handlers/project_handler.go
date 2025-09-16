@@ -1,12 +1,14 @@
+
 package handlers
 
 import (
-	"API_wrkf/models"
-	"API_wrkf/services"
 	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/buga/API_wrkf/models"
+	"github.com/buga/API_wrkf/services"
 
 	"github.com/labstack/echo/v4"
 )
@@ -27,7 +29,19 @@ func NewProjectHandler(service *services.ProjectService) *ProjectHandler {
 	return &ProjectHandler{Service: service}
 }
 
-// CreateProject handles the HTTP request to create a new project.
+// CreateProject godoc
+// @Summary      Create a new project
+// @Description  Creates a new project for the authenticated user.
+// @Tags         Projects
+// @Accept       json
+// @Produce      json
+// @Param        project  body      models.Project  true  "Project details"
+// @Success      201      {object}  models.Project
+// @Failure      400      {object}  map[string]string
+// @Failure      401      {object}  map[string]string
+// @Failure      500      {object}  map[string]string
+// @Security     ApiKeyAuth
+// @Router       /api/projects [post]
 func (h *ProjectHandler) CreateProject(c echo.Context) error {
 	project := new(models.Project)
 	if err := c.Bind(project); err != nil {

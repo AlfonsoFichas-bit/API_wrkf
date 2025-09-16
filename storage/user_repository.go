@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"API_wrkf/models"
+	"github.com/buga/API_wrkf/models"
 	"gorm.io/gorm"
 )
 

@@ -1,42 +1,61 @@
+
 package main
 
 import (
-	"API_wrkf/config"
-	"API_wrkf/handlers"
-	"API_wrkf/models"
-	"API_wrkf/routes"
-	"API_wrkf/services"
-	"API_wrkf/storage"
 	"errors"
 	"fmt"
 	"log"
+
+	"github.com/buga/API_wrkf/config"
+	_ "github.com/buga/API_wrkf/docs" // This line is needed for swag to find your docs
+	"github.com/buga/API_wrkf/handlers"
+	"github.com/buga/API_wrkf/models"
+	"github.com/buga/API_wrkf/routes"
+	"github.com/buga/API_wrkf/services"
+	"github.com/buga/API_wrkf/storage"
 
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
 
+// @title           API-wrkf Project Management API
+// @version         1.0
+// @description     This is a comprehensive API for a Scrum-based project management platform.
+// @termsOfService  http://swagger.io/terms/
+
+// @contact.name   API Support
+// @contact.url    http://www.swagger.io/support
+// @contact.email  support@swagger.io
+
+// @license.name  Apache 2.0
+// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host      localhost:8080
+// @BasePath  /
+
+// @securityDefinitions.apikey  ApiKeyAuth
+// @in header
+// @name Authorization
+// @description "Type 'Bearer' followed by a space and the JWT token. Example: 'Bearer {token}" 
+
 // createAdminUserIfNeeded checks if an admin user exists and creates one if it doesn't.
 func createAdminUserIfNeeded(userService *services.UserService, adminCfg *config.AdminConfig) {
-	// Check if a user with the admin email already exists
 	_, err := userService.GetUserByEmail(adminCfg.Email)
 	if err == nil {
-		// Admin user already exists, no action needed
 		fmt.Println("Admin user already exists.")
 		return
 	}
 
-	// If the error is anything other than "record not found", log it and stop
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
 		log.Printf("Error checking for admin user: %v", err)
 		return
 	}
 
-	// Admin user does not exist, so create one
 	fmt.Println("Admin user not found, creating a new one...")
 	admin := &models.User{
 		Nombre:          adminCfg.Nombre,
-		ApellidoPaterno: "Admin", // Default value
-		ApellidoMaterno: "User",  // Default value
+		ApellidoPaterno: "Admin",
+		ApellidoMaterno: "User",
 		Correo:          adminCfg.Email,
 		Contraseña:      adminCfg.Password,
 	}
@@ -77,7 +96,7 @@ func main() {
 	// Create admin user if it doesn't exist
 	createAdminUserIfNeeded(userService, cfg.Admin)
 
-	// Project components (NEW)
+	// Project components
 	projectRepo := storage.NewProjectRepository(db)
 	projectService := services.NewProjectService(projectRepo)
 	projectHandler := handlers.NewProjectHandler(projectService)
@@ -87,10 +106,15 @@ func main() {
 	sprintService := services.NewSprintService(sprintRepo)
 	sprintHandler := handlers.NewSprintHandler(sprintService)
 
+	// User Story components
+	userStoryRepo := storage.NewUserStoryRepository(db)
+	// Inject projectService into userStoryService
+	userStoryService := services.NewUserStoryService(userStoryRepo, projectService)
+	userStoryHandler := handlers.NewUserStoryHandler(userStoryService)
+
 	// --- Initialize Echo and Set Up Routes ---
 	e := echo.New()
-	// Pass all handlers to the router setup function
-	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, cfg.JWTSecret)
+	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, userStoryHandler, cfg.JWTSecret)
 
 	// --- Start Server ---
 	fmt.Println("Starting server on port 8080...")
