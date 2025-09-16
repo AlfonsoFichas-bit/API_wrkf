@@ -1,9 +1,11 @@
+
 package services
 
 import (
-	"API_wrkf/models"
-	"API_wrkf/storage"
 	"fmt"
+
+	"github.com/buga/API_wrkf/models"
+	"github.com/buga/API_wrkf/storage"
 
 	"gorm.io/gorm"
 )
@@ -67,8 +69,12 @@ func (s *ProjectService) UpdateProject(projectID uint, updates map[string]interf
 		return nil, fmt.Errorf("forbidden: you do not have permission to update this project")
 	}
 
-	existingProject.Name = updates["Name"].(string)
-	existingProject.Description = updates["Description"].(string)
+	if name, ok := updates["Name"].(string); ok {
+		existingProject.Name = name
+	}
+	if description, ok := updates["Description"].(string); ok {
+		existingProject.Description = description
+	}
 
 	if err := s.Repo.UpdateProject(existingProject); err != nil {
 		return nil, err
@@ -79,32 +85,31 @@ func (s *ProjectService) UpdateProject(projectID uint, updates map[string]interf
 
 // DeleteProject handles the transactional deletion of a project and its members.
 func (s *ProjectService) DeleteProject(projectID uint, requestingUserID uint, requestingUserRole string) error {
-	// 1. Get the existing project to check for ownership.
 	existingProject, err := s.Repo.GetProjectByID(projectID)
 	if err != nil {
 		return fmt.Errorf("project not found")
 	}
 
-	// 2. Check permissions.
 	isOwner := existingProject.CreatedByID == requestingUserID
 	isAdmin := requestingUserRole == string(models.RoleAdmin)
 	if !isOwner && !isAdmin {
 		return fmt.Errorf("forbidden: you do not have permission to delete this project")
 	}
 
-	// 3. Perform deletion within a transaction.
 	return s.Repo.DB.Transaction(func(tx *gorm.DB) error {
-		// First, delete all members associated with the project.
 		if err := s.Repo.DeleteProjectMembersByProjectID(tx, projectID); err != nil {
 			return err // Rollback
 		}
 
-		// Then, delete the project itself.
 		if err := s.Repo.DeleteProject(tx, projectID); err != nil {
 			return err // Rollback
 		}
 
-		// Return nil to commit the transaction
-		return nil
+		return nil // Commit
 	})
+}
+
+// GetUserRoleInProject retrieves a user's role within a specific project.
+func (s *ProjectService) GetUserRoleInProject(userID, projectID uint) (string, error) {
+	return s.Repo.GetUserRoleInProject(userID, projectID)
 }
