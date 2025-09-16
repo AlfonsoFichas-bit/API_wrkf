@@ -102,7 +102,56 @@ This document provides a reference for all the available endpoints in the API-wr
 
 ---
 
-## 4. Administration (Admin-Only)
+## 4. User Stories (Product Backlog)
+
+### Create User Story
+
+-   **Endpoint:** `POST /api/projects/:id/userstories`
+-   **Description:** Creates a new user story within a specific project. The user making the request is assigned as the creator.
+-   **Access:** Authenticated (any valid user)
+-   **Request Body:**
+    ```json
+    {
+      "title": "As a user, I want to log in",
+      "description": "Details about the login feature.",
+      "acceptanceCriteria": "1. User can log in with email and password.",
+      "priority": "high",
+      "points": 5
+    }
+    ```
+-   **Success Response:** `201 Created` with the newly created user story object.
+
+### Get All User Stories for a Project
+
+-   **Endpoint:** `GET /api/projects/:id/userstories`
+-   **Description:** Retrieves a list of all user stories for a specific project (the Product Backlog).
+-   **Access:** Authenticated (any valid user)
+-   **Success Response:** `200 OK` with an array of user story objects.
+
+### Update User Story
+
+-   **Endpoint:** `PUT /api/userstories/:storyId`
+-   **Description:** Updates the details of an existing user story.
+-   **Access:** Authenticated (Platform Admin, or Project's `product_owner` / `scrum_master`)
+-   **Request Body:**
+    ```json
+    {
+      "title": "Updated User Story Title",
+      "priority": "medium"
+    }
+    ```
+-   **Success Response:** `200 OK` with the updated user story object.
+
+### Delete User Story
+
+-   **Endpoint:** `DELETE /api/userstories/:storyId`
+-   **Description:** Deletes a user story from the product backlog.
+-   **Access:** Authenticated (Platform Admin, or Project's `product_owner` / `scrum_master`)
+-   **Success Response:** `204 No Content`
+
+---
+
+## 5. Administration (Admin-Only)
 
 All endpoints in this section require the user to have an `admin` platform role.
 
