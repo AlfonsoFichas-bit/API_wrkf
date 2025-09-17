@@ -1,4 +1,3 @@
-
 package routes
 
 import (
@@ -34,11 +33,17 @@ func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler
 	// User Story routes
 	api.POST("/projects/:id/userstories", userStoryHandler.CreateUserStory)
 	api.GET("/projects/:id/userstories", userStoryHandler.GetUserStoriesByProjectID)
-	api.PUT("/userstories/:storyId", userStoryHandler.UpdateUserStory)       // <-- NEW
-	api.DELETE("/userstories/:storyId", userStoryHandler.DeleteUserStory) // <-- NEW
+	api.GET("/userstories/:storyId", userStoryHandler.GetUserStoryByID) // <-- NEW
+	api.PUT("/userstories/:storyId", userStoryHandler.UpdateUserStory)
+	api.DELETE("/userstories/:storyId", userStoryHandler.DeleteUserStory)
 
 	// Sprint routes
-	api.POST("/sprints", sprintHandler.CreateSprint)
+	api.POST("/projects/:id/sprints", sprintHandler.CreateSprint)
+	api.GET("/projects/:id/sprints", sprintHandler.GetSprintsByProjectID)
+	api.GET("/sprints/:sprintId", sprintHandler.GetSprintByID)
+	api.PUT("/sprints/:sprintId", sprintHandler.UpdateSprint)
+	api.DELETE("/sprints/:sprintId", sprintHandler.DeleteSprint)
+	api.POST("/sprints/:sprintId/userstories", userStoryHandler.AssignUserStoryToSprint)
 
 	// --- Admin-Only Routes ---
 	admin := e.Group("/api/admin")

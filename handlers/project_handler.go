@@ -1,4 +1,3 @@
-
 package handlers
 
 import (
@@ -15,8 +14,8 @@ import (
 
 // AddMemberRequest defines the structure for a request to add a member to a project.
 type AddMemberRequest struct {
-	UserID uint   `json:"userId"`
-	Role   string `json:"role"`
+	UserID uint   `json:"userId" example:"2"`
+	Role   string `json:"role" example:"team_developer"`
 }
 
 // ProjectHandler handles HTTP requests for projects.

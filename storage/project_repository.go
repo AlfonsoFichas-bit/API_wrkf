@@ -1,4 +1,3 @@
-
 package storage
 
 import (
@@ -60,7 +59,14 @@ func (r *ProjectRepository) GetUserRoleInProject(userID, projectID uint) (string
 	var member models.ProjectMember
 	err := r.DB.Where("user_id = ? AND project_id = ?", userID, projectID).First(&member).Error
 	if err != nil {
-		return "", err // Could be gorm.ErrRecordNotFound, which is fine
+		return "", err
 	}
 	return member.Role, nil
+}
+
+// GetProjectMemberByID retrieves a single project membership record, preloading the user.
+func (r *ProjectRepository) GetProjectMemberByID(id uint) (*models.ProjectMember, error) {
+	var member models.ProjectMember
+	err := r.DB.Preload("User").First(&member, id).Error
+	return &member, err
 }

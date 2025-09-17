@@ -1,4 +1,3 @@
-
 package handlers
 
 import (
@@ -12,7 +11,6 @@ import (
 )
 
 // LoginRequest defines the structure for a login request.
-// The order of fields and example values are set for Swagger UI convenience.
 type LoginRequest struct {
 	Correo     string `json:"correo" example:"admin@example.com"`
 	Contraseña string `json:"contraseña" example:"admin123"`

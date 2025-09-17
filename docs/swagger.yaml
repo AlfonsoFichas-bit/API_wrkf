@@ -1,5 +1,11 @@
 basePath: /
 definitions:
+  handlers.AssignStoryRequest:
+    properties:
+      userStoryId:
+        example: 1
+        type: integer
+    type: object
   handlers.LoginRequest:
     properties:
       contraseña:
@@ -79,6 +85,11 @@ definitions:
         type: string
       updatedAt:
         type: string
+      userStories:
+        description: <-- RELATIONSHIP ADDED
+        items:
+          $ref: '#/definitions/models.UserStory'
+        type: array
     type: object
   models.User:
     properties:
@@ -126,8 +137,11 @@ definitions:
       projectID:
         type: integer
       sprint:
-        $ref: '#/definitions/models.Sprint'
+        allOf:
+        - $ref: '#/definitions/models.Sprint'
+        description: Let GORM infer the relationship via convention
       sprintID:
+        description: Pointer to allow null values
         type: integer
       status:
         type: string
@@ -192,6 +206,81 @@ paths:
       summary: Create a new project
       tags:
       - Projects
+  /api/projects/{id}/sprints:
+    get:
+      description: Retrieves a list of all sprints for a specific project.
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Sprint'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get all Sprints for a project
+      tags:
+      - Sprints
+    post:
+      consumes:
+      - application/json
+      description: Creates a new sprint within a specific project.
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Sprint Details (name, goal, startDate, endDate)
+        in: body
+        name: sprint
+        required: true
+        schema:
+          $ref: '#/definitions/models.Sprint'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Sprint'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new Sprint
+      tags:
+      - Sprints
   /api/projects/{id}/userstories:
     get:
       description: Retrieves a list of all user stories (the Product Backlog) for
@@ -280,6 +369,155 @@ paths:
       summary: Create a new User Story
       tags:
       - User Stories
+  /api/sprints/{sprintId}:
+    delete:
+      description: Deletes an existing sprint.
+      parameters:
+      - description: Sprint ID
+        in: path
+        name: sprintId
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Delete a Sprint
+      tags:
+      - Sprints
+    get:
+      description: Retrieves details of a single sprint by its ID.
+      parameters:
+      - description: Sprint ID
+        in: path
+        name: sprintId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Sprint'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get a single Sprint
+      tags:
+      - Sprints
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing sprint.
+      parameters:
+      - description: Sprint ID
+        in: path
+        name: sprintId
+        required: true
+        type: integer
+      - description: Updated sprint data
+        in: body
+        name: sprint
+        required: true
+        schema:
+          $ref: '#/definitions/models.Sprint'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Sprint'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Update a Sprint
+      tags:
+      - Sprints
+  /api/sprints/{sprintId}/userstories:
+    post:
+      consumes:
+      - application/json
+      description: Assigns an existing user story to a sprint. Requires admin, product
+        owner, or scrum master role.
+      parameters:
+      - description: Sprint ID
+        in: path
+        name: sprintId
+        required: true
+        type: integer
+      - description: User Story ID to assign
+        in: body
+        name: assignment
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.AssignStoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UserStory'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Assign a User Story to a Sprint
+      tags:
+      - Sprints
   /api/userstories/{storyId}:
     delete:
       description: Deletes an existing user story. Requires admin, product owner,
@@ -308,6 +546,45 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Delete a User Story
+      tags:
+      - User Stories
+    get:
+      description: Retrieves details of a single user story by its ID, including related
+        project, sprint, and user data.
+      parameters:
+      - description: User Story ID
+        in: path
+        name: storyId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UserStory'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get a single User Story
       tags:
       - User Stories
     put:

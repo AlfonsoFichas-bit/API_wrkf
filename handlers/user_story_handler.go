@@ -12,6 +12,11 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// AssignStoryRequest defines the structure for assigning a user story to a sprint.
+type AssignStoryRequest struct {
+	UserStoryID uint `json:"userStoryId" example:"1"`
+}
+
 // UserStoryHandler handles HTTP requests for user stories.
 type UserStoryHandler struct {
 	Service *services.UserStoryService
@@ -83,6 +88,32 @@ func (h *UserStoryHandler) GetUserStoriesByProjectID(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, userStories)
+}
+
+// GetUserStoryByID godoc
+// @Summary      Get a single User Story
+// @Description  Retrieves details of a single user story by its ID, including related project, sprint, and user data.
+// @Tags         User Stories
+// @Produce      json
+// @Param        storyId   path      int  true  "User Story ID"
+// @Success      200       {object}  models.UserStory
+// @Failure      400       {object}  map[string]string
+// @Failure      401       {object}  map[string]string
+// @Failure      404       {object}  map[string]string
+// @Security     ApiKeyAuth
+// @Router       /api/userstories/{storyId} [get]
+func (h *UserStoryHandler) GetUserStoryByID(c echo.Context) error {
+	storyID, err := strconv.ParseUint(c.Param("storyId"), 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user story ID"})
+	}
+
+	userStory, err := h.Service.GetUserStoryByID(uint(storyID))
+	if err != nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "User story not found"})
+	}
+
+	return c.JSON(http.StatusOK, userStory)
 }
 
 // UpdateUserStory godoc
@@ -157,4 +188,46 @@ func (h *UserStoryHandler) DeleteUserStory(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+// AssignUserStoryToSprint godoc
+// @Summary      Assign a User Story to a Sprint
+// @Description  Assigns an existing user story to a sprint. Requires admin, product owner, or scrum master role.
+// @Tags         Sprints
+// @Accept       json
+// @Produce      json
+// @Param        sprintId  path      int                 true  "Sprint ID"
+// @Param        assignment  body      AssignStoryRequest  true  "User Story ID to assign"
+// @Success      200       {object}  models.UserStory
+// @Failure      400       {object}  map[string]string
+// @Failure      403       {object}  map[string]string
+// @Failure      404       {object}  map[string]string
+// @Security     ApiKeyAuth
+// @Router       /api/sprints/{sprintId}/userstories [post]
+func (h *UserStoryHandler) AssignUserStoryToSprint(c echo.Context) error {
+	sprintID, err := strconv.ParseUint(c.Param("sprintId"), 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid sprint ID"})
+	}
+
+	req := new(AssignStoryRequest)
+	if err := c.Bind(req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+	}
+
+	userID, _ := c.Get("userID").(float64)
+	platformRole, _ := c.Get("userRole").(string)
+
+	updatedStory, err := h.Service.AssignUserStoryToSprint(uint(sprintID), req.UserStoryID, uint(userID), platformRole)
+	if err != nil {
+		if strings.Contains(err.Error(), "forbidden") {
+			return c.JSON(http.StatusForbidden, map[string]string{"error": err.Error()})
+		}
+		if strings.Contains(err.Error(), "not found") {
+			return c.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
+		}
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, updatedStory)
 }

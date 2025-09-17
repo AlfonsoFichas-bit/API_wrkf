@@ -1,4 +1,3 @@
-
 package main
 
 import (
@@ -36,7 +35,7 @@ import (
 // @securityDefinitions.apikey  ApiKeyAuth
 // @in header
 // @name Authorization
-// @description "Type 'Bearer' followed by a space and the JWT token. Example: 'Bearer {token}" 
+// @description "Type 'Bearer' followed by a space and the JWT token. Example: 'Bearer {token}"
 
 // createAdminUserIfNeeded checks if an admin user exists and creates one if it doesn't.
 func createAdminUserIfNeeded(userService *services.UserService, adminCfg *config.AdminConfig) {
@@ -108,8 +107,8 @@ func main() {
 
 	// User Story components
 	userStoryRepo := storage.NewUserStoryRepository(db)
-	// Inject projectService into userStoryService
-	userStoryService := services.NewUserStoryService(userStoryRepo, projectService)
+	// Inject projectService and sprintService into userStoryService
+	userStoryService := services.NewUserStoryService(userStoryRepo, projectService, sprintService)
 	userStoryHandler := handlers.NewUserStoryHandler(userStoryService)
 
 	// --- Initialize Echo and Set Up Routes ---

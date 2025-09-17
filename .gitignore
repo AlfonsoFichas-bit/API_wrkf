@@ -28,3 +28,6 @@ vendor/
 # Temporary files
 *~
 #*#
+
+# SQL
+*.sql

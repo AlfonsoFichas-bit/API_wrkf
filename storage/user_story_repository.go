@@ -1,4 +1,3 @@
-
 package storage
 
 import (
@@ -24,14 +23,15 @@ func (r *UserStoryRepository) CreateUserStory(userStory *models.UserStory) error
 // GetUserStoriesByProjectID retrieves all user stories for a given project ID.
 func (r *UserStoryRepository) GetUserStoriesByProjectID(projectID uint) ([]models.UserStory, error) {
 	var userStories []models.UserStory
-	err := r.DB.Where("project_id = ?", projectID).Find(&userStories).Error
+	err := r.DB.Where("project_id = ?", projectID).Preload("CreatedBy").Find(&userStories).Error
 	return userStories, err
 }
 
-// GetUserStoryByID retrieves a single user story by its ID.
+// GetUserStoryByID retrieves a single user story by its ID, preloading most related data.
+// Sprint is loaded manually in the service layer due to preload issues.
 func (r *UserStoryRepository) GetUserStoryByID(id uint) (*models.UserStory, error) {
 	var userStory models.UserStory
-	err := r.DB.First(&userStory, id).Error
+	err := r.DB.Preload("Project").Preload("CreatedBy").Preload("AssignedTo").First(&userStory, id).Error
 	return &userStory, err
 }
 

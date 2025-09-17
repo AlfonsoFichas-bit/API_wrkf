@@ -11,8 +11,9 @@ type Sprint struct {
 	Status      string  `gorm:"not null;default:'planned'"`
 	StartDate   *time.Time
 	EndDate     *time.Time
-	CreatedByID uint      `gorm:"not null"`
-	CreatedBy   User      `gorm:"foreignKey:CreatedByID"`
-	CreatedAt   time.Time `gorm:"autoCreateTime"`
-	UpdatedAt   time.Time `gorm:"autoUpdateTime"`
+	CreatedByID uint        `gorm:"not null"`
+	CreatedBy   User        `gorm:"foreignKey:CreatedByID"`
+	CreatedAt   time.Time   `gorm:"autoCreateTime"`
+	UpdatedAt   time.Time   `gorm:"autoUpdateTime"`
+	UserStories []UserStory `gorm:"foreignKey:SprintID"` // <-- RELATIONSHIP ADDED
 }

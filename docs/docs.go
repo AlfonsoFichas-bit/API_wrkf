@@ -90,6 +90,123 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/projects/{id}/sprints": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retrieves a list of all sprints for a specific project.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sprints"
+                ],
+                "summary": "Get all Sprints for a project",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Project ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Sprint"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Creates a new sprint within a specific project.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sprints"
+                ],
+                "summary": "Create a new Sprint",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Project ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Sprint Details (name, goal, startDate, endDate)",
+                        "name": "sprint",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Sprint"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Sprint"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/projects/{id}/userstories": {
             "get": {
                 "security": [
@@ -225,7 +342,297 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/sprints/{sprintId}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retrieves details of a single sprint by its ID.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sprints"
+                ],
+                "summary": "Get a single Sprint",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Sprint ID",
+                        "name": "sprintId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Sprint"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Updates an existing sprint.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sprints"
+                ],
+                "summary": "Update a Sprint",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Sprint ID",
+                        "name": "sprintId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated sprint data",
+                        "name": "sprint",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Sprint"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Sprint"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Deletes an existing sprint.",
+                "tags": [
+                    "Sprints"
+                ],
+                "summary": "Delete a Sprint",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Sprint ID",
+                        "name": "sprintId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/sprints/{sprintId}/userstories": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Assigns an existing user story to a sprint. Requires admin, product owner, or scrum master role.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sprints"
+                ],
+                "summary": "Assign a User Story to a Sprint",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Sprint ID",
+                        "name": "sprintId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "User Story ID to assign",
+                        "name": "assignment",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.AssignStoryRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.UserStory"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/userstories/{storyId}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retrieves details of a single user story by its ID, including related project, sprint, and user data.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Stories"
+                ],
+                "summary": "Get a single User Story",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User Story ID",
+                        "name": "storyId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.UserStory"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
             "put": {
                 "security": [
                     {
@@ -400,6 +807,15 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "handlers.AssignStoryRequest": {
+            "type": "object",
+            "properties": {
+                "userStoryId": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
         "handlers.LoginRequest": {
             "type": "object",
             "properties": {
@@ -518,6 +934,13 @@ const docTemplate = `{
                 },
                 "updatedAt": {
                     "type": "string"
+                },
+                "userStories": {
+                    "description": "\u003c-- RELATIONSHIP ADDED",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.UserStory"
+                    }
                 }
             }
         },
@@ -588,9 +1011,15 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "sprint": {
-                    "$ref": "#/definitions/models.Sprint"
+                    "description": "Let GORM infer the relationship via convention",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.Sprint"
+                        }
+                    ]
                 },
                 "sprintID": {
+                    "description": "Pointer to allow null values",
                     "type": "integer"
                 },
                 "status": {

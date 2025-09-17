@@ -1,4 +1,3 @@
-
 package services
 
 import (
@@ -43,7 +42,8 @@ func (s *ProjectService) AddMemberToProject(projectID, userID uint, role string)
 		return nil, err
 	}
 
-	return member, nil
+	// After creating, fetch the full record to include the preloaded User.
+	return s.Repo.GetProjectMemberByID(member.ID)
 }
 
 // GetProjects retrieves all projects.

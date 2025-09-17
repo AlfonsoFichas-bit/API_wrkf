@@ -12,8 +12,8 @@ type UserStory struct {
 	Points             *int
 	ProjectID          uint    `gorm:"not null"`
 	Project            Project `gorm:"foreignKey:ProjectID"`
-	SprintID           *uint
-	Sprint             *Sprint `gorm:"foreignKey:SprintID"`
+	SprintID           *uint   // Pointer to allow null values
+	Sprint             *Sprint // Let GORM infer the relationship via convention
 	CreatedByID        uint    `gorm:"not null"`
 	CreatedBy          User    `gorm:"foreignKey:CreatedByID"`
 	AssignedToID       *uint

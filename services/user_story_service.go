@@ -1,4 +1,3 @@
-
 package services
 
 import (
@@ -12,13 +11,15 @@ import (
 type UserStoryService struct {
 	Repo           *storage.UserStoryRepository
 	ProjectService *ProjectService // Dependency to check project-level roles
+	SprintService  *SprintService  // Dependency to check sprint details
 }
 
 // NewUserStoryService creates a new instance of UserStoryService.
-func NewUserStoryService(repo *storage.UserStoryRepository, projectService *ProjectService) *UserStoryService {
+func NewUserStoryService(repo *storage.UserStoryRepository, projectService *ProjectService, sprintService *SprintService) *UserStoryService {
 	return &UserStoryService{
 		Repo:           repo,
 		ProjectService: projectService,
+		SprintService:  sprintService,
 	}
 }
 
@@ -34,27 +35,44 @@ func (s *UserStoryService) GetUserStoriesByProjectID(projectID uint) ([]models.U
 	return s.Repo.GetUserStoriesByProjectID(projectID)
 }
 
+// GetUserStoryByID retrieves a single user story and manually hydrates the Sprint relationship.
+func (s *UserStoryService) GetUserStoryByID(id uint) (*models.UserStory, error) {
+	// 1. Get the base user story object.
+	userStory, err := s.Repo.GetUserStoryByID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. Manually hydrate the Sprint if a SprintID exists.
+	if userStory.SprintID != nil {
+		sprint, err := s.SprintService.GetSprintByID(*userStory.SprintID)
+		// **THE FIX IS HERE: If hydration fails, return the error.**
+		if err != nil {
+			// This will tell us WHY the sprint isn't loading.
+			return nil, fmt.Errorf("failed to hydrate sprint with ID %d: %w", *userStory.SprintID, err)
+		}
+		userStory.Sprint = sprint
+	}
+
+	return userStory, nil
+}
+
 // checkUserStoryPermissions is a helper function to verify if a user can modify a user story.
 func (s *UserStoryService) checkUserStoryPermissions(userStoryID, requestingUserID uint, platformRole string) (bool, error) {
-	// First, check if the user is a platform admin.
 	if platformRole == string(models.RoleAdmin) {
 		return true, nil
 	}
 
-	// Get the user story to find out which project it belongs to.
 	userStory, err := s.Repo.GetUserStoryByID(userStoryID)
 	if err != nil {
 		return false, fmt.Errorf("user story not found")
 	}
 
-	// Get the user's role within that specific project.
 	projectRole, err := s.ProjectService.GetUserRoleInProject(requestingUserID, userStory.ProjectID)
 	if err != nil {
-		// This includes the case where the user is not a member of the project.
 		return false, nil
 	}
 
-	// Check if the project role has modification permissions.
 	switch models.ProjectRole(projectRole) {
 	case models.RoleProductOwner, models.RoleScrumMaster:
 		return true, nil
@@ -78,7 +96,6 @@ func (s *UserStoryService) UpdateUserStory(storyID, requestingUserID uint, platf
 		return nil, fmt.Errorf("user story not found")
 	}
 
-	// Apply updates (a more robust implementation would use reflection or a library)
 	if title, ok := updates["title"].(string); ok {
 		existingStory.Title = title
 	}
@@ -103,4 +120,35 @@ func (s *UserStoryService) DeleteUserStory(storyID, requestingUserID uint, platf
 	}
 
 	return s.Repo.DeleteUserStory(storyID)
+}
+
+// AssignUserStoryToSprint handles assigning a user story to a sprint with permission checks.
+func (s *UserStoryService) AssignUserStoryToSprint(sprintID, storyID, requestingUserID uint, platformRole string) (*models.UserStory, error) {
+	canAssign, err := s.checkUserStoryPermissions(storyID, requestingUserID, platformRole)
+	if err != nil {
+		return nil, err
+	}
+	if !canAssign {
+		return nil, fmt.Errorf("forbidden: you do not have permission to assign this user story")
+	}
+
+	userStory, err := s.Repo.GetUserStoryByID(storyID)
+	if err != nil {
+		return nil, fmt.Errorf("user story not found")
+	}
+	sprint, err := s.SprintService.GetSprintByID(sprintID)
+	if err != nil {
+		return nil, fmt.Errorf("sprint not found")
+	}
+
+	if userStory.ProjectID != sprint.ProjectID {
+		return nil, fmt.Errorf("cross-project assignment forbidden: user story and sprint belong to different projects")
+	}
+
+	userStory.SprintID = &sprintID
+	if err := s.Repo.UpdateUserStory(userStory); err != nil {
+		return nil, err
+	}
+
+	return userStory, nil
 }
