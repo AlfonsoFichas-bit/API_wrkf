@@ -1,3 +1,4 @@
+
 package routes
 
 import (
@@ -9,7 +10,7 @@ import (
 )
 
 // SetupRoutes configures the application routes.
-func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler *handlers.ProjectHandler, sprintHandler *handlers.SprintHandler, userStoryHandler *handlers.UserStoryHandler, jwtSecret string) {
+func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler *handlers.ProjectHandler, sprintHandler *handlers.SprintHandler, userStoryHandler *handlers.UserStoryHandler, taskHandler *handlers.TaskHandler, jwtSecret string) {
 	// --- Swagger Route ---
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
@@ -33,9 +34,17 @@ func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler
 	// User Story routes
 	api.POST("/projects/:id/userstories", userStoryHandler.CreateUserStory)
 	api.GET("/projects/:id/userstories", userStoryHandler.GetUserStoriesByProjectID)
-	api.GET("/userstories/:storyId", userStoryHandler.GetUserStoryByID) // <-- NEW
+	api.GET("/userstories/:storyId", userStoryHandler.GetUserStoryByID)
 	api.PUT("/userstories/:storyId", userStoryHandler.UpdateUserStory)
 	api.DELETE("/userstories/:storyId", userStoryHandler.DeleteUserStory)
+
+	// Task routes
+	api.POST("/userstories/:storyId/tasks", taskHandler.CreateTask)
+	api.GET("/userstories/:storyId/tasks", taskHandler.GetTasksByUserStoryID)
+	api.PUT("/tasks/:taskId", taskHandler.UpdateTask)
+	api.DELETE("/tasks/:taskId", taskHandler.DeleteTask)
+	api.PUT("/tasks/:taskId/assign", taskHandler.AssignTask)
+	api.PUT("/tasks/:taskId/status", taskHandler.UpdateTaskStatus) // <-- NEW
 
 	// Sprint routes
 	api.POST("/projects/:id/sprints", sprintHandler.CreateSprint)

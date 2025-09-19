@@ -1,3 +1,4 @@
+
 package storage
 
 import (
@@ -23,7 +24,6 @@ func (r *SprintRepository) CreateSprint(sprint *models.Sprint) error {
 // GetSprintsByProjectID retrieves all sprints for a given project ID.
 func (r *SprintRepository) GetSprintsByProjectID(projectID uint) ([]models.Sprint, error) {
 	var sprints []models.Sprint
-	// Preload the creator's data for each sprint.
 	err := r.DB.Where("project_id = ?", projectID).Preload("CreatedBy").Find(&sprints).Error
 	return sprints, err
 }
@@ -31,7 +31,6 @@ func (r *SprintRepository) GetSprintsByProjectID(projectID uint) ([]models.Sprin
 // GetSprintByID retrieves a single sprint by its ID.
 func (r *SprintRepository) GetSprintByID(id uint) (*models.Sprint, error) {
 	var sprint models.Sprint
-	// Also preload data when getting a single sprint.
 	err := r.DB.Preload("CreatedBy").Preload("Project").First(&sprint, id).Error
 	return &sprint, err
 }
@@ -44,4 +43,9 @@ func (r *SprintRepository) UpdateSprint(sprint *models.Sprint) error {
 // DeleteSprint removes a sprint from the database by its ID.
 func (r *SprintRepository) DeleteSprint(id uint) error {
 	return r.DB.Delete(&models.Sprint{}, id).Error
+}
+
+// DeleteSprintsByProjectID deletes all sprints associated with a project.
+func (r *SprintRepository) DeleteSprintsByProjectID(tx *gorm.DB, projectID uint) error {
+	return tx.Where("project_id = ?", projectID).Delete(&models.Sprint{}).Error
 }

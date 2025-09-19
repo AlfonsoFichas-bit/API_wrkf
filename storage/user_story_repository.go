@@ -1,3 +1,4 @@
+
 package storage
 
 import (
@@ -27,8 +28,7 @@ func (r *UserStoryRepository) GetUserStoriesByProjectID(projectID uint) ([]model
 	return userStories, err
 }
 
-// GetUserStoryByID retrieves a single user story by its ID, preloading most related data.
-// Sprint is loaded manually in the service layer due to preload issues.
+// GetUserStoryByID retrieves a single user story by its ID, preloading all related data.
 func (r *UserStoryRepository) GetUserStoryByID(id uint) (*models.UserStory, error) {
 	var userStory models.UserStory
 	err := r.DB.Preload("Project").Preload("CreatedBy").Preload("AssignedTo").First(&userStory, id).Error
@@ -43,4 +43,16 @@ func (r *UserStoryRepository) UpdateUserStory(userStory *models.UserStory) error
 // DeleteUserStory removes a user story from the database by its ID.
 func (r *UserStoryRepository) DeleteUserStory(id uint) error {
 	return r.DB.Delete(&models.UserStory{}, id).Error
+}
+
+// GetUserStoryIDsByProjectID retrieves the IDs of all user stories for a given project.
+func (r *UserStoryRepository) GetUserStoryIDsByProjectID(tx *gorm.DB, projectID uint) ([]uint, error) {
+	var ids []uint
+	err := tx.Model(&models.UserStory{}).Where("project_id = ?", projectID).Pluck("id", &ids).Error
+	return ids, err
+}
+
+// DeleteUserStoriesByProjectID deletes all user stories associated with a project.
+func (r *UserStoryRepository) DeleteUserStoriesByProjectID(tx *gorm.DB, projectID uint) error {
+	return tx.Where("project_id = ?", projectID).Delete(&models.UserStory{}).Error
 }

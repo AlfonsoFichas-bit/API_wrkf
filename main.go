@@ -1,3 +1,4 @@
+
 package main
 
 import (
@@ -35,7 +36,7 @@ import (
 // @securityDefinitions.apikey  ApiKeyAuth
 // @in header
 // @name Authorization
-// @description "Type 'Bearer' followed by a space and the JWT token. Example: 'Bearer {token}"
+// @description "Type 'Bearer' followed by a space and the JWT token. Example: 'Bearer {token}" 
 
 // createAdminUserIfNeeded checks if an admin user exists and creates one if it doesn't.
 func createAdminUserIfNeeded(userService *services.UserService, adminCfg *config.AdminConfig) {
@@ -95,25 +96,29 @@ func main() {
 	// Create admin user if it doesn't exist
 	createAdminUserIfNeeded(userService, cfg.Admin)
 
-	// Project components
+	// Sprint, Task, and UserStory Repositories
+	sprintRepo := storage.NewSprintRepository(db)
+	taskRepo := storage.NewTaskRepository(db)
+	userStoryRepo := storage.NewUserStoryRepository(db)
+
+	// Project Service (now with more dependencies)
 	projectRepo := storage.NewProjectRepository(db)
-	projectService := services.NewProjectService(projectRepo)
+	projectService := services.NewProjectService(projectRepo, userStoryRepo, sprintRepo, taskRepo)
 	projectHandler := handlers.NewProjectHandler(projectService)
 
-	// Sprint components
-	sprintRepo := storage.NewSprintRepository(db)
+	// Other Services
 	sprintService := services.NewSprintService(sprintRepo)
-	sprintHandler := handlers.NewSprintHandler(sprintService)
-
-	// User Story components
-	userStoryRepo := storage.NewUserStoryRepository(db)
-	// Inject projectService and sprintService into userStoryService
+	taskService := services.NewTaskService(taskRepo, projectService)
 	userStoryService := services.NewUserStoryService(userStoryRepo, projectService, sprintService)
+
+	// Handlers
+	sprintHandler := handlers.NewSprintHandler(sprintService)
+	taskHandler := handlers.NewTaskHandler(taskService)
 	userStoryHandler := handlers.NewUserStoryHandler(userStoryService)
 
 	// --- Initialize Echo and Set Up Routes ---
 	e := echo.New()
-	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, userStoryHandler, cfg.JWTSecret)
+	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, userStoryHandler, taskHandler, cfg.JWTSecret)
 
 	// --- Start Server ---
 	fmt.Println("Starting server on port 8080...")

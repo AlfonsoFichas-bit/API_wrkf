@@ -1,3 +1,4 @@
+
 package services
 
 import (
@@ -11,12 +12,20 @@ import (
 
 // ProjectService handles the business logic for projects.
 type ProjectService struct {
-	Repo *storage.ProjectRepository
+	Repo            *storage.ProjectRepository
+	UserStoryRepo   *storage.UserStoryRepository // NEW
+	SprintRepo      *storage.SprintRepository    // NEW
+	TaskRepo        *storage.TaskRepository      // NEW
 }
 
 // NewProjectService creates a new instance of ProjectService.
-func NewProjectService(repo *storage.ProjectRepository) *ProjectService {
-	return &ProjectService{Repo: repo}
+func NewProjectService(repo *storage.ProjectRepository, userStoryRepo *storage.UserStoryRepository, sprintRepo *storage.SprintRepository, taskRepo *storage.TaskRepository) *ProjectService {
+	return &ProjectService{
+		Repo:            repo,
+		UserStoryRepo:   userStoryRepo,
+		SprintRepo:      sprintRepo,
+		TaskRepo:        taskRepo,
+	}
 }
 
 // CreateProject handles the business logic for creating a new project.
@@ -42,7 +51,6 @@ func (s *ProjectService) AddMemberToProject(projectID, userID uint, role string)
 		return nil, err
 	}
 
-	// After creating, fetch the full record to include the preloaded User.
 	return s.Repo.GetProjectMemberByID(member.ID)
 }
 
@@ -83,7 +91,7 @@ func (s *ProjectService) UpdateProject(projectID uint, updates map[string]interf
 	return existingProject, nil
 }
 
-// DeleteProject handles the transactional deletion of a project and its members.
+// DeleteProject handles the transactional deletion of a project and all its dependencies.
 func (s *ProjectService) DeleteProject(projectID uint, requestingUserID uint, requestingUserRole string) error {
 	existingProject, err := s.Repo.GetProjectByID(projectID)
 	if err != nil {
@@ -96,11 +104,37 @@ func (s *ProjectService) DeleteProject(projectID uint, requestingUserID uint, re
 		return fmt.Errorf("forbidden: you do not have permission to delete this project")
 	}
 
+	// Perform all deletions within a single transaction.
 	return s.Repo.DB.Transaction(func(tx *gorm.DB) error {
+		// 1. Get all User Story IDs for the project.
+		storyIDs, err := s.UserStoryRepo.GetUserStoryIDsByProjectID(tx, projectID)
+		if err != nil {
+			return err // Rollback
+		}
+
+		// 2. If there are user stories, delete their dependent tasks first.
+		if len(storyIDs) > 0 {
+			if err := s.TaskRepo.DeleteTasksByUserStoryIDs(tx, storyIDs); err != nil {
+				return err // Rollback
+			}
+		}
+
+		// 3. Delete all User Stories for the project.
+		if err := s.UserStoryRepo.DeleteUserStoriesByProjectID(tx, projectID); err != nil {
+			return err // Rollback
+		}
+
+		// 4. Delete all Sprints for the project.
+		if err := s.SprintRepo.DeleteSprintsByProjectID(tx, projectID); err != nil {
+			return err // Rollback
+		}
+
+		// 5. Delete all Project Members for the project.
 		if err := s.Repo.DeleteProjectMembersByProjectID(tx, projectID); err != nil {
 			return err // Rollback
 		}
 
+		// 6. Finally, delete the project itself.
 		if err := s.Repo.DeleteProject(tx, projectID); err != nil {
 			return err // Rollback
 		}
