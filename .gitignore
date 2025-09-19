@@ -34,3 +34,6 @@ vendor/
 
 # Scripts
 *.fish
+
+# Files
+API-Workflow.postman_collection.json
