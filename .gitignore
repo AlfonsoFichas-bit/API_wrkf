@@ -31,3 +31,6 @@ vendor/
 
 # SQL
 *.sql
+
+# Scripts
+*.fish
