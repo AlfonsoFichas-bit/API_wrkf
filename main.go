@@ -1,4 +1,3 @@
-
 package main
 
 import (
@@ -36,13 +35,13 @@ import (
 // @securityDefinitions.apikey  ApiKeyAuth
 // @in header
 // @name Authorization
-// @description "Type 'Bearer' followed by a space and the JWT token. Example: 'Bearer {token}" 
+// @description "Type 'Bearer' followed by a space and the JWT token. Example: 'Bearer {token}"
 
-// createAdminUserIfNeeded checks if an admin user exists and creates one if it doesn't.
+// createAdminUserIfNeeded comprueba si existe un usuario administrador si no crea uno.
 func createAdminUserIfNeeded(userService *services.UserService, adminCfg *config.AdminConfig) {
 	_, err := userService.GetUserByEmail(adminCfg.Email)
 	if err == nil {
-		fmt.Println("Admin user already exists.")
+		fmt.Println("Usuario administrador ya existe.")
 		return
 	}
 
