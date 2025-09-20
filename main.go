@@ -120,8 +120,8 @@ func main() {
 	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, userStoryHandler, taskHandler, cfg.JWTSecret)
 
 	// --- Start Server ---
-	fmt.Println("Starting server on port 8080...")
+	fmt.Println("Iniciando el servidor en el puerto 8080...")
 	if err := e.Start(":8080"); err != nil {
-		log.Fatalf("could not start server: %v", err)
+		log.Fatalf("No se pudo iniciar el servidor: %v", err)
 	}
 }
