@@ -12,7 +12,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// AddMemberRequest defines the structure for a request to add a member to a project.
+// AddMemberRequest define la estructura de una solicitud para añadir un miembro a un proyecto.
 type AddMemberRequest struct {
 	UserID uint   `json:"userId" example:"2"`
 	Role   string `json:"role" example:"team_developer"`
@@ -56,7 +56,7 @@ func (h *ProjectHandler) CreateProject(c echo.Context) error {
 	return c.JSON(http.StatusCreated, project)
 }
 
-// AddMemberToProject handles the HTTP request to add a member to a project.
+// AddMemberRequest define la estructura de una solicitud para añadir un miembro a un proyecto.
 func (h *ProjectHandler) AddMemberToProject(c echo.Context) error {
 	projectID, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
