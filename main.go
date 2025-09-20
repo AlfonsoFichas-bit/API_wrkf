@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"github.com/buga/API_wrkf/config"
-	_ "github.com/buga/API_wrkf/docs" // This line is needed for swag to find your docs
+	_ "github.com/buga/API_wrkf/docs"
 	"github.com/buga/API_wrkf/handlers"
 	"github.com/buga/API_wrkf/models"
 	"github.com/buga/API_wrkf/routes"
@@ -63,14 +63,14 @@ func createAdminUserIfNeeded(userService *services.UserService, adminCfg *config
 		log.Fatalf("Could not create admin user: %v", err)
 	}
 
-	fmt.Println("Admin user created successfully!")
+	fmt.Println("Usuario administrador creado correctamente")
 }
 
 func main() {
-	// Load application configuration
+	// Cargar configuración de la aplicación
 	cfg := config.LoadConfig()
 
-	// Create database connection
+	// Crear conexión a la db
 	db, err := storage.NewConnection(cfg.DB)
 	if err != nil {
 		log.Fatalf("could not connect to database: %v", err)
@@ -78,21 +78,21 @@ func main() {
 
 	fmt.Println("Successfully connected to the database!")
 
-	// Run database migrations
+	// Ejecutar migraciones de db
 	if err := storage.Migrate(db); err != nil {
 		log.Fatalf("could not migrate database: %v", err)
 	}
 
 	fmt.Println("Database migration completed successfully!")
 
-	// --- Initialize Layers with Dependencies ---
+	// --- Inicializar capas con dependencias ---
 
 	// User components
 	userRepo := storage.NewUserRepository(db)
 	userService := services.NewUserService(userRepo, cfg.JWTSecret)
 	userHandler := handlers.NewUserHandler(userService)
 
-	// Create admin user if it doesn't exist
+	// Cargar configuración de la aplicación
 	createAdminUserIfNeeded(userService, cfg.Admin)
 
 	// Sprint, Task, and UserStory Repositories
@@ -115,11 +115,11 @@ func main() {
 	taskHandler := handlers.NewTaskHandler(taskService)
 	userStoryHandler := handlers.NewUserStoryHandler(userStoryService)
 
-	// --- Initialize Echo and Set Up Routes ---
+	// --- Inicializar Echo y configurar routes ---
 	e := echo.New()
 	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, userStoryHandler, taskHandler, cfg.JWTSecret)
 
-	// --- Start Server ---
+	// --- Iniciar Servidor ---
 	fmt.Println("Iniciando el servidor en el puerto 8080...")
 	if err := e.Start(":8080"); err != nil {
 		log.Fatalf("No se pudo iniciar el servidor: %v", err)
