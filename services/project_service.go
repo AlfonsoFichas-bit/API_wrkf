@@ -1,4 +1,3 @@
-
 package services
 
 import (
@@ -12,19 +11,19 @@ import (
 
 // ProjectService handles the business logic for projects.
 type ProjectService struct {
-	Repo            *storage.ProjectRepository
-	UserStoryRepo   *storage.UserStoryRepository // NEW
-	SprintRepo      *storage.SprintRepository    // NEW
-	TaskRepo        *storage.TaskRepository      // NEW
+	Repo          *storage.ProjectRepository
+	UserStoryRepo *storage.UserStoryRepository // NEW
+	SprintRepo    *storage.SprintRepository    // NEW
+	TaskRepo      *storage.TaskRepository      // NEW
 }
 
 // NewProjectService creates a new instance of ProjectService.
 func NewProjectService(repo *storage.ProjectRepository, userStoryRepo *storage.UserStoryRepository, sprintRepo *storage.SprintRepository, taskRepo *storage.TaskRepository) *ProjectService {
 	return &ProjectService{
-		Repo:            repo,
-		UserStoryRepo:   userStoryRepo,
-		SprintRepo:      sprintRepo,
-		TaskRepo:        taskRepo,
+		Repo:          repo,
+		UserStoryRepo: userStoryRepo,
+		SprintRepo:    sprintRepo,
+		TaskRepo:      taskRepo,
 	}
 }
 
