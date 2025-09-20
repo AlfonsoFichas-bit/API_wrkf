@@ -46,11 +46,11 @@ func createAdminUserIfNeeded(userService *services.UserService, adminCfg *config
 	}
 
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
-		log.Printf("Error checking for admin user: %v", err)
+		log.Printf("Error al checkear admin user: %v", err)
 		return
 	}
 
-	fmt.Println("Admin user not found, creating a new one...")
+	fmt.Println("No se ha encontrado el usuario administrador, creando uno nuevo...")
 	admin := &models.User{
 		Nombre:          adminCfg.Nombre,
 		ApellidoPaterno: "Admin",
@@ -60,7 +60,7 @@ func createAdminUserIfNeeded(userService *services.UserService, adminCfg *config
 	}
 
 	if err := userService.CreateAdminUser(admin); err != nil {
-		log.Fatalf("Could not create admin user: %v", err)
+		log.Fatalf("No se pudo crear el usuario administrador.: %v", err)
 	}
 
 	fmt.Println("Usuario administrador creado correctamente")
