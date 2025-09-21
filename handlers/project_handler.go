@@ -18,12 +18,12 @@ type AddMemberRequest struct {
 	Role   string `json:"role" example:"team_developer"`
 }
 
-// ProjectHandler handles HTTP requests for projects.
+// ProjectHandler gestiona las solicitudes HTTP para projects.
 type ProjectHandler struct {
 	Service *services.ProjectService
 }
 
-// NewProjectHandler creates a new instance of ProjectHandler.
+// NewProjectHandler crea una nueva instancia de ProjectHandler.
 func NewProjectHandler(service *services.ProjectService) *ProjectHandler {
 	return &ProjectHandler{Service: service}
 }
@@ -79,7 +79,7 @@ func (h *ProjectHandler) AddMemberToProject(c echo.Context) error {
 	return c.JSON(http.StatusCreated, member)
 }
 
-// GetAllProjects handles the HTTP request to retrieve all projects.
+// GetAllProjects gestiona la solicitud HTTP para recuperar todos los proyectos.
 func (h *ProjectHandler) GetAllProjects(c echo.Context) error {
 	projects, err := h.Service.GetProjects()
 	if err != nil {

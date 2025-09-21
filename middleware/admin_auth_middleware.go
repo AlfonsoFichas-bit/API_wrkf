@@ -8,13 +8,13 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// AdminAuthMiddleware checks if the authenticated user has the 'admin' role.
-// It should be used AFTER the JWTAuthMiddleware.
+// AdminAuthMiddleware comprueba si el usuario autenticado tiene el rol «admin».
+// Debe utilizarse DESPUÉS de JWTAuthMiddleware.
 func AdminAuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		userRole, ok := c.Get("userRole").(string)
 		if !ok || userRole != string(models.RoleAdmin) {
-			return c.JSON(http.StatusForbidden, map[string]string{"error": "Forbidden: Administrator access required"})
+			return c.JSON(http.StatusForbidden, map[string]string{"error": "Prohibido: Se requiere acceso de admin"})
 		}
 		return next(c)
 	}
