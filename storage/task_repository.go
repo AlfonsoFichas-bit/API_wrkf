@@ -48,3 +48,8 @@ func (r *TaskRepository) DeleteTask(id uint) error {
 func (r *TaskRepository) DeleteTasksByUserStoryIDs(tx *gorm.DB, storyIDs []uint) error {
 	return tx.Where("user_story_id IN ?", storyIDs).Delete(&models.Task{}).Error
 }
+
+// AddComment adds a new comment to the database.
+func (r *TaskRepository) AddComment(comment *models.TaskComment) error {
+	return r.DB.Create(comment).Error
+}

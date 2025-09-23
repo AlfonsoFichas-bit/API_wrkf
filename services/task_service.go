@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/buga/API_wrkf/models"
 	"github.com/buga/API_wrkf/storage"
@@ -9,15 +10,17 @@ import (
 
 // TaskService handles the business logic for tasks.
 type TaskService struct {
-	Repo           *storage.TaskRepository
-	ProjectService *ProjectService // Dependency to check project membership
+	Repo                *storage.TaskRepository
+	ProjectService      *ProjectService // Dependency to check project membership
+	NotificationService *NotificationService
 }
 
 // NewTaskService creates a new instance of TaskService.
-func NewTaskService(repo *storage.TaskRepository, projectService *ProjectService) *TaskService {
+func NewTaskService(repo *storage.TaskRepository, projectService *ProjectService, notificationService *NotificationService) *TaskService {
 	return &TaskService{
-		Repo:           repo,
-		ProjectService: projectService,
+		Repo:                repo,
+		ProjectService:      projectService,
+		NotificationService: notificationService,
 	}
 }
 
@@ -73,7 +76,22 @@ func (s *TaskService) AssignTask(taskID, assignToUserID uint) (*models.Task, err
 
 	task.AssignedToID = &assignToUserID
 
-	return s.UpdateTask(task)
+	updatedTask, err := s.UpdateTask(task)
+	if err != nil {
+		return nil, err
+	}
+
+	// --- Create Notification ---
+	message := fmt.Sprintf("Se te ha asignado la tarea '%s'.", updatedTask.Title)
+	link := fmt.Sprintf("/tasks/%d", updatedTask.ID)
+	_, err = s.NotificationService.CreateNotification(assignToUserID, message, link)
+	if err != nil {
+		// Log the error but don't fail the whole operation as the main action (assignment) was successful.
+		log.Printf("could not create notification for task assignment: %v", err)
+	}
+	// --- End Notification ---
+
+	return updatedTask, nil
 }
 
 // UpdateTaskStatus handles the business logic for changing a task's status.
@@ -94,4 +112,37 @@ func (s *TaskService) UpdateTaskStatus(taskID uint, newStatus string) (*models.T
 
 	// 4. Save and return the updated, hydrated task.
 	return s.UpdateTask(task)
+}
+
+// AddCommentToTask adds a comment to a task and notifies the assignee.
+func (s *TaskService) AddCommentToTask(taskID, authorID uint, content string) (*models.TaskComment, error) {
+	comment := &models.TaskComment{
+		TaskID:   taskID,
+		AuthorID: authorID,
+		Content:  content,
+	}
+
+	if err := s.Repo.AddComment(comment); err != nil {
+		return nil, err
+	}
+
+	// --- Create Notification ---
+	task, err := s.Repo.GetTaskByID(taskID)
+	if err != nil {
+		log.Printf("could not get task for notification after commenting: %v", err)
+		return comment, nil // Return the comment even if notification fails
+	}
+
+	// Only notify if there is an assignee and the assignee is not the one who commented.
+	if task.AssignedToID != nil && *task.AssignedToID != authorID {
+		message := fmt.Sprintf("Nuevo comentario en la tarea '%s'.", task.Title)
+		link := fmt.Sprintf("/tasks/%d", task.ID)
+		_, err := s.NotificationService.CreateNotification(*task.AssignedToID, message, link)
+		if err != nil {
+			log.Printf("could not create notification for new comment: %v", err)
+		}
+	}
+	// --- End Notification ---
+
+	return comment, nil
 }

@@ -9,7 +9,7 @@ import (
 )
 
 // SetupRoutes configures the application routes.
-func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler *handlers.ProjectHandler, sprintHandler *handlers.SprintHandler, userStoryHandler *handlers.UserStoryHandler, taskHandler *handlers.TaskHandler, jwtSecret string) {
+func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler *handlers.ProjectHandler, sprintHandler *handlers.SprintHandler, userStoryHandler *handlers.UserStoryHandler, taskHandler *handlers.TaskHandler, notificationHandler *handlers.NotificationHandler, jwtSecret string) {
 	// --- Swagger Route ---
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
@@ -22,6 +22,11 @@ func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler
 
 	// User routes
 	api.GET("/users/:id", userHandler.GetUser)
+
+	// Notification routes
+	api.GET("/notifications", notificationHandler.GetUserNotifications)
+	api.POST("/notifications/read/all", notificationHandler.MarkAllAsRead)
+	api.POST("/notifications/:id/read", notificationHandler.MarkAsRead)
 
 	// Project routes
 	api.POST("/projects", projectHandler.CreateProject)
@@ -44,6 +49,7 @@ func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler
 	api.DELETE("/tasks/:taskId", taskHandler.DeleteTask)
 	api.PUT("/tasks/:taskId/assign", taskHandler.AssignTask)
 	api.PUT("/tasks/:taskId/status", taskHandler.UpdateTaskStatus) // <-- NEW
+	api.POST("/tasks/:id/comments", taskHandler.AddComment)      // <-- NEW
 
 	// Sprint routes
 	api.POST("/projects/:id/sprints", sprintHandler.CreateSprint)

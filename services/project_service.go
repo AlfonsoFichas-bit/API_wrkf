@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/buga/API_wrkf/models"
 	"github.com/buga/API_wrkf/storage"
@@ -11,19 +12,21 @@ import (
 
 // ProjectService handles the business logic for projects.
 type ProjectService struct {
-	Repo          *storage.ProjectRepository
-	UserStoryRepo *storage.UserStoryRepository // NEW
-	SprintRepo    *storage.SprintRepository    // NEW
-	TaskRepo      *storage.TaskRepository      // NEW
+	Repo                *storage.ProjectRepository
+	UserStoryRepo       *storage.UserStoryRepository
+	SprintRepo          *storage.SprintRepository
+	TaskRepo            *storage.TaskRepository
+	NotificationService *NotificationService // Injected
 }
 
 // NewProjectService creates a new instance of ProjectService.
-func NewProjectService(repo *storage.ProjectRepository, userStoryRepo *storage.UserStoryRepository, sprintRepo *storage.SprintRepository, taskRepo *storage.TaskRepository) *ProjectService {
+func NewProjectService(repo *storage.ProjectRepository, userStoryRepo *storage.UserStoryRepository, sprintRepo *storage.SprintRepository, taskRepo *storage.TaskRepository, notificationService *NotificationService) *ProjectService {
 	return &ProjectService{
-		Repo:          repo,
-		UserStoryRepo: userStoryRepo,
-		SprintRepo:    sprintRepo,
-		TaskRepo:      taskRepo,
+		Repo:                repo,
+		UserStoryRepo:       userStoryRepo,
+		SprintRepo:          sprintRepo,
+		TaskRepo:            taskRepo,
+		NotificationService: notificationService,
 	}
 }
 
@@ -49,6 +52,20 @@ func (s *ProjectService) AddMemberToProject(projectID, userID uint, role string)
 	if err := s.Repo.AddMemberToProject(member); err != nil {
 		return nil, err
 	}
+
+	// --- Create Notification ---
+	project, err := s.Repo.GetProjectByID(projectID)
+	if err != nil {
+		log.Printf("could not get project details for notification: %v", err)
+	} else {
+		message := fmt.Sprintf("Has sido añadido al proyecto '%s' con el rol de '%s'.", project.Name, role)
+		link := fmt.Sprintf("/projects/%d", projectID)
+		_, err := s.NotificationService.CreateNotification(userID, message, link)
+		if err != nil {
+			log.Printf("could not create notification for user %d: %v", userID, err)
+		}
+	}
+	// --- End Notification ---
 
 	return s.Repo.GetProjectMemberByID(member.ID)
 }

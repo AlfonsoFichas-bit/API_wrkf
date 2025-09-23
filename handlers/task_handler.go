@@ -7,7 +7,7 @@ import (
 
 	"github.com/buga/API_wrkf/models"
 	"github.com/buga/API_wrkf/services"
-
+	"github.com/buga/API_wrkf/utils"
 	"github.com/labstack/echo/v4"
 )
 
@@ -202,7 +202,7 @@ func (h *TaskHandler) AssignTask(c echo.Context) error {
 // @Security     ApiKeyAuth
 // @Router       /api/tasks/{taskId}/status [put]
 func (h *TaskHandler) UpdateTaskStatus(c echo.Context) error {
-	taskId, err := strconv.ParseUint(c.Param("taskId"), 10, 32)
+	taskID, err := strconv.ParseUint(c.Param("taskId"), 10, 32)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid task ID"})
 	}
@@ -212,10 +212,42 @@ func (h *TaskHandler) UpdateTaskStatus(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
 	}
 
-	updatedTask, err := h.Service.UpdateTaskStatus(uint(taskId), req.Status)
+	updatedTask, err := h.Service.UpdateTaskStatus(uint(taskID), req.Status)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
 	return c.JSON(http.StatusOK, updatedTask)
+}
+
+// AddComment handles the request to add a new comment to a task.
+func (h *TaskHandler) AddComment(c echo.Context) error {
+	taskID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid task ID"})
+	}
+
+	authorID, err := utils.GetUserIDFromContext(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid user ID"})
+	}
+
+	var body struct {
+		Content string `json:"content"`
+	}
+
+	if err := c.Bind(&body); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+	}
+
+	if body.Content == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Comment content cannot be empty"})
+	}
+
+	comment, err := h.Service.AddCommentToTask(uint(taskID), authorID, body.Content)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusCreated, comment)
 }

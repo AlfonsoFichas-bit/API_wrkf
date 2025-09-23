@@ -95,6 +95,11 @@ func main() {
 	// Cargar configuración de la aplicación
 	createAdminUserIfNeeded(userService, cfg.Admin)
 
+	// Notification components
+	notificationRepo := storage.NewNotificationRepository(db)
+	notificationService := services.NewNotificationService(notificationRepo)
+	notificationHandler := handlers.NewNotificationHandler(notificationService)
+
 	// Sprint, Task, and UserStory Repositories
 	sprintRepo := storage.NewSprintRepository(db)
 	taskRepo := storage.NewTaskRepository(db)
@@ -102,12 +107,12 @@ func main() {
 
 	// Project Service (now with more dependencies)
 	projectRepo := storage.NewProjectRepository(db)
-	projectService := services.NewProjectService(projectRepo, userStoryRepo, sprintRepo, taskRepo)
+	projectService := services.NewProjectService(projectRepo, userStoryRepo, sprintRepo, taskRepo, notificationService) // Inyectar notificationService
 	projectHandler := handlers.NewProjectHandler(projectService)
 
 	// Other Services
 	sprintService := services.NewSprintService(sprintRepo)
-	taskService := services.NewTaskService(taskRepo, projectService)
+	taskService := services.NewTaskService(taskRepo, projectService, notificationService)
 	userStoryService := services.NewUserStoryService(userStoryRepo, projectService, sprintService)
 
 	// Handlers
@@ -117,7 +122,7 @@ func main() {
 
 	// --- Inicializar Echo y configurar routes ---
 	e := echo.New()
-	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, userStoryHandler, taskHandler, cfg.JWTSecret)
+	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, userStoryHandler, taskHandler, notificationHandler, cfg.JWTSecret)
 
 	// --- Iniciar Servidor ---
 	fmt.Println("Iniciando el servidor en el puerto 8080...")

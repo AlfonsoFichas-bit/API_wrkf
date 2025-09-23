@@ -1,0 +1,506 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2025-09-22T10:00:00.000Z",
+  "__export_source": "gemini-cli",
+  "resources": [
+    {
+      "_id": "wrk_1",
+      "_type": "workspace",
+      "name": "API-wrkf Project Management",
+      "description": "",
+      "scope": "collection"
+    },
+    {
+      "_id": "env_1",
+      "_type": "environment",
+      "parentId": "wrk_1",
+      "name": "Base Environment",
+      "data": {
+        "baseUrl": "http://localhost:8080",
+        "jwt_token": ""
+      }
+    },
+    {
+      "_id": "grp_auth",
+      "_type": "request_group",
+      "parentId": "wrk_1",
+      "name": "Authentication"
+    },
+    {
+      "_id": "req_login",
+      "_type": "request",
+      "parentId": "grp_auth",
+      "name": "Login",
+      "url": "{{ _.baseUrl }}/login",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"correo\": \"admin@example.com\",\n  \"contraseña\": \"adminpassword\"\n}"
+      },
+      "authentication": {}
+    },
+    {
+      "_id": "grp_users",
+      "_type": "request_group",
+      "parentId": "wrk_1",
+      "name": "Users"
+    },
+    {
+      "_id": "req_get_user",
+      "_type": "request",
+      "parentId": "grp_users",
+      "name": "Get User By ID",
+      "url": "{{ _.baseUrl }}/api/users/1",
+      "method": "GET",
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.jwt_token }}"
+      }
+    },
+    {
+      "_id": "grp_admin_users",
+      "_type": "request_group",
+      "parentId": "grp_users",
+      "name": "Admin"
+    },
+    {
+      "_id": "req_create_user",
+      "_type": "request",
+      "parentId": "grp_admin_users",
+      "name": "Create User",
+      "url": "{{ _.baseUrl }}/api/admin/users",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"Nombre\": \"Test\",\n  \"ApellidoPaterno\": \"User\",\n  \"ApellidoMaterno\": \"Dev\",\n  \"Correo\": \"test.user@example.com\",\n  \"Contraseña\": \"a-very-secure-password\",\n  \"Role\": \"user\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.jwt_token }}"
+      }
+    },
+    {
+      "_id": "req_create_admin_user",
+      "_type": "request",
+      "parentId": "grp_admin_users",
+      "name": "Create Admin User",
+      "url": "{{ _.baseUrl }}/api/admin/users/admin",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"Nombre\": \"New\",\n  \"ApellidoPaterno\": \"Admin\",\n  \"ApellidoMaterno\": \"User\",\n  \"Correo\": \"new.admin@example.com\",\n  \"Contraseña\": \"a-very-secure-password\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.jwt_token }}"
+      }
+    },
+    {
+      "_id": "grp_projects",
+      "_type": "request_group",
+      "parentId": "wrk_1",
+      "name": "Projects"
+    },
+    {
+      "_id": "req_create_project",
+      "_type": "request",
+      "parentId": "grp_projects",
+      "name": "Create Project",
+      "url": "{{ _.baseUrl }}/api/projects",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"Name\": \"My New Awesome Project\",\n  \"Description\": \"This is the description of the new project.\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.jwt_token }}"
+      }
+    },
+    {
+      "_id": "req_get_all_projects",
+      "_type": "request",
+      "parentId": "grp_projects",
+      "name": "Get All Projects",
+      "url": "{{ _.baseUrl }}/api/projects",
+      "method": "GET",
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.jwt_token }}"
+      }
+    },
+    {
+      "_id": "req_get_project_by_id",
+      "_type": "request",
+      "parentId": "grp_projects",
+      "name": "Get Project By ID",
+      "url": "{{ _.baseUrl }}/api/projects/1",
+      "method": "GET",
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.jwt_token }}"
+      }
+    },
+    {
+      "_id": "req_update_project",
+      "_type": "request",
+      "parentId": "grp_projects",
+      "name": "Update Project",
+      "url": "{{ _.baseUrl }}/api/projects/1",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"Name\": \"Updated Project Name\",\n  \"Description\": \"Updated project description.\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.jwt_token }}"
+      }
+    },
+    {
+      "_id": "req_delete_project",
+      "_type": "request",
+      "parentId": "grp_projects",
+      "name": "Delete Project",
+      "url": "{{ _.baseUrl }}/api/projects/1",
+      "method": "DELETE",
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.jwt_token }}"
+      }
+    },
+    {
+      "_id": "req_add_member",
+      "_type": "request",
+      "parentId": "grp_projects",
+      "name": "Add Member to Project",
+      "url": "{{ _.baseUrl }}/api/admin/projects/1/members",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"userId\": 2,\n  \"role\": \"team_developer\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.jwt_token }}"
+      }
+    },
+    {
+      "_id": "grp_user_stories",
+      "_type": "request_group",
+      "parentId": "wrk_1",
+      "name": "User Stories"
+    },
+    {
+      "_id": "req_create_user_story",
+      "_type": "request",
+      "parentId": "grp_user_stories",
+      "name": "Create User Story",
+      "url": "{{ _.baseUrl }}/api/projects/1/userstories",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"Title\": \"As a user, I can log in\",\n  \"Description\": \"A user should be able to log in using their email and password.\",\n  \"AcceptanceCriteria\": \"Given a valid user, when they log in, they are redirected to the dashboard.\",\n  \"Priority\": \"high\",\n  \"Points\": 5\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.jwt_token }}"
+      }
+    },
+    {
+      "_id": "req_get_user_stories_by_project",
+      "_type": "request",
+      "parentId": "grp_user_stories",
+      "name": "Get User Stories by Project ID",
+      "url": "{{ _.baseUrl }}/api/projects/1/userstories",
+      "method": "GET",
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.jwt_token }}"
+      }
+    },
+    {
+      "_id": "req_get_user_story_by_id",
+      "_type": "request",
+      "parentId": "grp_user_stories",
+      "name": "Get User Story By ID",
+      "url": "{{ _.baseUrl }}/api/userstories/1",
+      "method": "GET",
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.jwt_token }}"
+      }
+    },
+    {
+      "_id": "req_update_user_story",
+      "_type": "request",
+      "parentId": "grp_user_stories",
+      "name": "Update User Story",
+      "url": "{{ _.baseUrl }}/api/userstories/1",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"Title\": \"Updated User Story Title\",\n  \"Priority\": \"medium\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.jwt_token }}"
+      }
+    },
+    {
+      "_id": "req_delete_user_story",
+      "_type": "request",
+      "parentId": "grp_user_stories",
+      "name": "Delete User Story",
+      "url": "{{ _.baseUrl }}/api/userstories/1",
+      "method": "DELETE",
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.jwt_token }}"
+      }
+    },
+    {
+      "_id": "grp_tasks",
+      "_type": "request_group",
+      "parentId": "wrk_1",
+      "name": "Tasks"
+    },
+    {
+      "_id": "req_create_task",
+      "_type": "request",
+      "parentId": "grp_tasks",
+      "name": "Create Task",
+      "url": "{{ _.baseUrl }}/api/userstories/1/tasks",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"Title\": \"Create login form UI\",\n  \"Description\": \"Develop the frontend for the login page.\",\n  \"EstimatedHours\": 8\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.jwt_token }}"
+      }
+    },
+    {
+      "_id": "req_get_tasks_by_user_story",
+      "_type": "request",
+      "parentId": "grp_tasks",
+      "name": "Get Tasks by User Story ID",
+      "url": "{{ _.baseUrl }}/api/userstories/1/tasks",
+      "method": "GET",
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.jwt_token }}"
+      }
+    },
+    {
+      "_id": "req_update_task",
+      "_type": "request",
+      "parentId": "grp_tasks",
+      "name": "Update Task",
+      "url": "{{ _.baseUrl }}/api/tasks/1",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"Title\": \"Updated Task Title\",\n  \"EstimatedHours\": 10\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.jwt_token }}"
+      }
+    },
+    {
+      "_id": "req_delete_task",
+      "_type": "request",
+      "parentId": "grp_tasks",
+      "name": "Delete Task",
+      "url": "{{ _.baseUrl }}/api/tasks/1",
+      "method": "DELETE",
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.jwt_token }}"
+      }
+    },
+    {
+      "_id": "req_assign_task",
+      "_type": "request",
+      "parentId": "grp_tasks",
+      "name": "Assign Task",
+      "url": "{{ _.baseUrl }}/api/tasks/1/assign",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"assignedToId\": 2\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.jwt_token }}"
+      }
+    },
+    {
+      "_id": "req_update_task_status",
+      "_type": "request",
+      "parentId": "grp_tasks",
+      "name": "Update Task Status",
+      "url": "{{ _.baseUrl }}/api/tasks/1/status",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"status\": \"in_progress\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.jwt_token }}"
+      }
+    },
+    {
+      "_id": "req_add_comment_to_task",
+      "_type": "request",
+      "parentId": "grp_tasks",
+      "name": "Add Comment to Task",
+      "url": "{{ _.baseUrl }}/api/tasks/1/comments",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"content\": \"This is a test comment.\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.jwt_token }}"
+      }
+    },
+    {
+      "_id": "grp_sprints",
+      "_type": "request_group",
+      "parentId": "wrk_1",
+      "name": "Sprints"
+    },
+    {
+      "_id": "req_create_sprint",
+      "_type": "request",
+      "parentId": "grp_sprints",
+      "name": "Create Sprint",
+      "url": "{{ _.baseUrl }}/api/projects/1/sprints",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"Name\": \"Sprint 1 - The Foundation\",\n  \"Goal\": \"Build the basic authentication and project structure.\",\n  \"StartDate\": \"2025-10-01T00:00:00Z\",\n  \"EndDate\": \"2025-10-15T23:59:59Z\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.jwt_token }}"
+      }
+    },
+    {
+      "_id": "req_get_sprints_by_project",
+      "_type": "request",
+      "parentId": "grp_sprints",
+      "name": "Get Sprints by Project ID",
+      "url": "{{ _.baseUrl }}/api/projects/1/sprints",
+      "method": "GET",
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.jwt_token }}"
+      }
+    },
+    {
+      "_id": "req_get_sprint_by_id",
+      "_type": "request",
+      "parentId": "grp_sprints",
+      "name": "Get Sprint By ID",
+      "url": "{{ _.baseUrl }}/api/sprints/1",
+      "method": "GET",
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.jwt_token }}"
+      }
+    },
+    {
+      "_id": "req_update_sprint",
+      "_type": "request",
+      "parentId": "grp_sprints",
+      "name": "Update Sprint",
+      "url": "{{ _.baseUrl }}/api/sprints/1",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"Name\": \"Updated Sprint Name\",\n  \"Goal\": \"Updated sprint goal.\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.jwt_token }}"
+      }
+    },
+    {
+      "_id": "req_delete_sprint",
+      "_type": "request",
+      "parentId": "grp_sprints",
+      "name": "Delete Sprint",
+      "url": "{{ _.baseUrl }}/api/sprints/1",
+      "method": "DELETE",
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.jwt_token }}"
+      }
+    },
+    {
+      "_id": "req_assign_user_story_to_sprint",
+      "_type": "request",
+      "parentId": "grp_sprints",
+      "name": "Assign User Story to Sprint",
+      "url": "{{ _.baseUrl }}/api/sprints/1/userstories",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"userStoryId\": 2\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.jwt_token }}"
+      }
+    },
+    {
+      "_id": "grp_notifications",
+      "_type": "request_group",
+      "parentId": "wrk_1",
+      "name": "Notifications"
+    },
+    {
+      "_id": "req_get_user_notifications",
+      "_type": "request",
+      "parentId": "grp_notifications",
+      "name": "Get User Notifications",
+      "url": "{{ _.baseUrl }}/api/notifications",
+      "method": "GET",
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.jwt_token }}"
+      }
+    },
+    {
+      "_id": "req_mark_all_notifications_as_read",
+      "_type": "request",
+      "parentId": "grp_notifications",
+      "name": "Mark All As Read",
+      "url": "{{ _.baseUrl }}/api/notifications/read/all",
+      "method": "POST",
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.jwt_token }}"
+      }
+    },
+    {
+      "_id": "req_mark_notification_as_read",
+      "_type": "request",
+      "parentId": "grp_notifications",
+      "name": "Mark As Read",
+      "url": "{{ _.baseUrl }}/api/notifications/1/read",
+      "method": "POST",
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.jwt_token }}"
+      }
+    }
+  ]
+}
