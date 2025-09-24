@@ -2,41 +2,6 @@ package models
 
 import "time"
 
-type Rubric struct {
-	ID          uint   `gorm:"primaryKey"`
-	Name        string `gorm:"not null"`
-	Description string
-	ProjectID   uint              `gorm:"not null"`
-	Project     Project           `gorm:"foreignKey:ProjectID"`
-	CreatedByID uint              `gorm:"not null"`
-	CreatedBy   User              `gorm:"foreignKey:CreatedByID"`
-	IsTemplate  bool              `gorm:"default:false"`
-	Status      string            `gorm:"not null;default:'draft'"`
-	CreatedAt   time.Time         `gorm:"autoCreateTime"`
-	UpdatedAt   time.Time         `gorm:"autoUpdateTime"`
-	Criteria    []RubricCriterium `gorm:"foreignKey:RubricID"`
-}
-
-type RubricCriterium struct {
-	ID          uint   `gorm:"primaryKey"`
-	RubricID    uint   `gorm:"not null"`
-	Name        string `gorm:"not null"`
-	Description string
-	MaxPoints   int                    `gorm:"not null"`
-	CreatedAt   time.Time              `gorm:"autoCreateTime"`
-	UpdatedAt   time.Time              `gorm:"autoUpdateTime"`
-	Levels      []RubricCriterionLevel `gorm:"foreignKey:CriterionID"`
-}
-
-type RubricCriterionLevel struct {
-	ID          uint      `gorm:"primaryKey"`
-	CriterionID uint      `gorm:"not null"`
-	Description string    `gorm:"not null"`
-	PointValue  int       `gorm:"not null"`
-	CreatedAt   time.Time `gorm:"autoCreateTime"`
-	UpdatedAt   time.Time `gorm:"autoUpdateTime"`
-}
-
 type Evaluation struct {
 	ID                   uint   `gorm:"primaryKey"`
 	DeliverableID        uint   `gorm:"not null"`
@@ -61,7 +26,7 @@ type CriterionEvaluation struct {
 	ID           uint            `gorm:"primaryKey"`
 	EvaluationID uint            `gorm:"not null"`
 	CriterionID  uint            `gorm:"not null"`
-	Criterium    RubricCriterium `gorm:"foreignKey:CriterionID"`
+	Criterium    RubricCriterion `gorm:"foreignKey:CriterionID"` // Changed from RubricCriterium
 	Score        int             `gorm:"not null"`
 	Feedback     string
 	CreatedAt    time.Time `gorm:"autoCreateTime"`

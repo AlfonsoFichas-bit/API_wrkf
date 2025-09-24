@@ -33,7 +33,7 @@ func Migrate(db *gorm.DB) error {
 		&models.TaskHistory{},
 		&models.TaskComment{},
 		&models.Rubric{},
-		&models.RubricCriterium{},
+		&models.RubricCriterion{},
 		&models.RubricCriterionLevel{},
 		&models.Evaluation{},
 		&models.CriterionEvaluation{},

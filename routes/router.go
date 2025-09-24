@@ -9,7 +9,7 @@ import (
 )
 
 // SetupRoutes configures the application routes.
-func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler *handlers.ProjectHandler, sprintHandler *handlers.SprintHandler, userStoryHandler *handlers.UserStoryHandler, taskHandler *handlers.TaskHandler, notificationHandler *handlers.NotificationHandler, jwtSecret string) {
+func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler *handlers.ProjectHandler, sprintHandler *handlers.SprintHandler, userStoryHandler *handlers.UserStoryHandler, taskHandler *handlers.TaskHandler, notificationHandler *handlers.NotificationHandler, rubricHandler *handlers.RubricHandler, jwtSecret string) {
 	// --- Swagger Route ---
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
@@ -34,6 +34,14 @@ func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler
 	api.GET("/projects/:id", projectHandler.GetProjectByID)
 	api.PUT("/projects/:id", projectHandler.UpdateProject)
 	api.DELETE("/projects/:id", projectHandler.DeleteProject)
+
+	// Rubric routes
+	api.POST("/rubrics", rubricHandler.CreateRubric)
+	api.GET("/rubrics", rubricHandler.GetAllRubrics)
+	api.GET("/rubrics/:id", rubricHandler.GetRubricByID)
+	api.PUT("/rubrics/:id", rubricHandler.UpdateRubric)
+	api.DELETE("/rubrics/:id", rubricHandler.DeleteRubric)
+	api.POST("/rubrics/:id/duplicate", rubricHandler.DuplicateRubric)
 
 	// User Story routes
 	api.POST("/projects/:id/userstories", userStoryHandler.CreateUserStory)

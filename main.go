@@ -100,6 +100,11 @@ func main() {
 	notificationService := services.NewNotificationService(notificationRepo)
 	notificationHandler := handlers.NewNotificationHandler(notificationService)
 
+	// Rubric components
+	rubricRepo := storage.NewRubricRepository(db)
+	rubricService := services.NewRubricService(rubricRepo)
+	rubricHandler := handlers.NewRubricHandler(rubricService)
+
 	// Sprint, Task, and UserStory Repositories
 	sprintRepo := storage.NewSprintRepository(db)
 	taskRepo := storage.NewTaskRepository(db)
@@ -122,7 +127,7 @@ func main() {
 
 	// --- Inicializar Echo y configurar routes ---
 	e := echo.New()
-	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, userStoryHandler, taskHandler, notificationHandler, cfg.JWTSecret)
+	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, userStoryHandler, taskHandler, notificationHandler, rubricHandler, cfg.JWTSecret)
 
 	// --- Iniciar Servidor ---
 	fmt.Println("Iniciando el servidor en el puerto 8080...")
