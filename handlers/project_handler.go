@@ -148,3 +148,34 @@ func (h *ProjectHandler) DeleteProject(c echo.Context) error {
 
 	return c.NoContent(http.StatusNoContent)
 }
+
+// GetProjectMembers handles the HTTP request to retrieve all members of a project.
+func (h *ProjectHandler) GetProjectMembers(c echo.Context) error {
+	projectID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid project ID"})
+	}
+
+	project, err := h.Service.GetProjectByID(uint(projectID))
+	if err != nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "Project not found"})
+	}
+
+	// Create a cleaner response model instead of exposing the full GORM models.
+	type MemberResponse struct {
+		UserID   uint   `json:"userId"`
+		Name     string `json:"name"`
+		Role     string `json:"role"`
+	}
+
+	response := make([]MemberResponse, len(project.Members))
+	for i, member := range project.Members {
+		response[i] = MemberResponse{
+			UserID:   member.UserID,
+			Name:     member.User.Nombre, // Assuming the User model has a 'Nombre' field
+			Role:     member.Role,
+		}
+	}
+
+	return c.JSON(http.StatusOK, response)
+}

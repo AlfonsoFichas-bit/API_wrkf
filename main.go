@@ -116,18 +116,30 @@ func main() {
 	projectHandler := handlers.NewProjectHandler(projectService)
 
 	// Other Services
-	sprintService := services.NewSprintService(sprintRepo)
+	sprintService := services.NewSprintService(sprintRepo, userStoryRepo)
 	taskService := services.NewTaskService(taskRepo, projectService, notificationService)
 	userStoryService := services.NewUserStoryService(userStoryRepo, projectService, sprintService)
+	backlogService := services.NewBacklogService(userStoryRepo)
+	taskBoardService := services.NewTaskBoardService(taskRepo)
+	evaluationRepo := storage.NewEvaluationRepository(db)
+	evaluationService := services.NewEvaluationService(evaluationRepo)
+	metricService := services.NewMetricService(sprintRepo, taskRepo)
 
 	// Handlers
 	sprintHandler := handlers.NewSprintHandler(sprintService)
 	taskHandler := handlers.NewTaskHandler(taskService)
 	userStoryHandler := handlers.NewUserStoryHandler(userStoryService)
+	backlogHandler := handlers.NewBacklogHandler(backlogService)
+	taskBoardHandler := handlers.NewTaskBoardHandler(taskBoardService)
+	evaluationHandler := handlers.NewEvaluationHandler(evaluationService)
+	metricHandler := handlers.NewMetricHandler(metricService)
+	adminHandler := handlers.NewAdminHandler(userService)
+	reportingService := services.NewReportingService(metricService, sprintRepo)
+	reportingHandler := handlers.NewReportingHandler(reportingService)
 
 	// --- Inicializar Echo y configurar routes ---
 	e := echo.New()
-	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, userStoryHandler, taskHandler, notificationHandler, rubricHandler, cfg.JWTSecret)
+	routes.SetupRoutes(e, userHandler, projectHandler, projectService, sprintHandler, userStoryHandler, taskHandler, notificationHandler, rubricHandler, backlogHandler, taskBoardHandler, evaluationHandler, metricHandler, adminHandler, reportingHandler, cfg.JWTSecret)
 
 	// --- Iniciar Servidor ---
 	fmt.Println("Iniciando el servidor en el puerto 8080...")

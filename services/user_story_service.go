@@ -145,10 +145,9 @@ func (s *UserStoryService) AssignUserStoryToSprint(sprintID, storyID, requesting
 		return nil, fmt.Errorf("cross-project assignment forbidden: user story and sprint belong to different projects")
 	}
 
-	userStory.SprintID = &sprintID
-	if err := s.Repo.UpdateUserStory(userStory); err != nil {
+	if err := s.SprintService.AddUserStoryToSprint(sprintID, storyID); err != nil {
 		return nil, err
 	}
 
-	return userStory, nil
+	return s.GetUserStoryByID(storyID)
 }

@@ -139,25 +139,17 @@ func (h *SprintHandler) UpdateSprint(c echo.Context) error {
 	return c.JSON(http.StatusOK, sprintToUpdate)
 }
 
-// DeleteSprint godoc
-// @Summary      Delete a Sprint
-// @Description  Deletes an existing sprint.
-// @Tags         Sprints
-// @Param        sprintId   path      int  true  "Sprint ID"
-// @Success      204        {object}  nil
-// @Failure      401        {object}  map[string]string
-// @Failure      404        {object}  map[string]string
-// @Security     ApiKeyAuth
-// @Router       /api/sprints/{sprintId} [delete]
 func (h *SprintHandler) DeleteSprint(c echo.Context) error {
-	sprintID, err := strconv.ParseUint(c.Param("sprintId"), 10, 32)
+	sprintID, err := strconv.Atoi(c.Param("sprintId"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid sprint ID"})
+		return c.JSON(http.StatusBadRequest, "Invalid sprint ID")
 	}
 
 	if err := h.Service.DeleteSprint(uint(sprintID)); err != nil {
-		return c.JSON(http.StatusNotFound, map[string]string{"error": "Sprint not found or could not be deleted"})
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	return c.NoContent(http.StatusNoContent)
 }
+
+

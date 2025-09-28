@@ -27,6 +27,13 @@ func (r *UserStoryRepository) GetUserStoriesByProjectID(projectID uint) ([]model
 	return userStories, err
 }
 
+// GetBacklogUserStoriesByProjectID retrieves all user stories for a given project that are not assigned to a sprint.
+func (r *UserStoryRepository) GetBacklogUserStoriesByProjectID(projectID uint) ([]models.UserStory, error) {
+	var userStories []models.UserStory
+	err := r.DB.Where("project_id = ? AND sprint_id IS NULL", projectID).Preload("CreatedBy").Find(&userStories).Error
+	return userStories, err
+}
+
 // GetUserStoryByID retrieves a single user story by its ID, preloading all related data.
 func (r *UserStoryRepository) GetUserStoryByID(id uint) (*models.UserStory, error) {
 	var userStory models.UserStory
@@ -37,6 +44,16 @@ func (r *UserStoryRepository) GetUserStoryByID(id uint) (*models.UserStory, erro
 // UpdateUserStory updates an existing user story in the database.
 func (r *UserStoryRepository) UpdateUserStory(userStory *models.UserStory) error {
 	return r.DB.Save(userStory).Error
+}
+
+// UpdateUserStoryStatus updates the status of a user story.
+func (r *UserStoryRepository) UpdateUserStoryStatus(id uint, status string) error {
+	return r.DB.Model(&models.UserStory{}).Where("id = ?", id).Update("status", status).Error
+}
+
+// AssignUserStoryToSprint assigns a user story to a sprint.
+func (r *UserStoryRepository) AssignUserStoryToSprint(id uint, sprintID uint) error {
+	return r.DB.Model(&models.UserStory{}).Where("id = ?", id).Update("sprint_id", sprintID).Error
 }
 
 // DeleteUserStory removes a user story from the database by its ID.

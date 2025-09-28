@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/buga/API_wrkf/models"
 	"github.com/buga/API_wrkf/services"
 
 	"github.com/labstack/echo/v4"
@@ -51,35 +50,7 @@ func (h *UserHandler) Login(c echo.Context) error {
 	})
 }
 
-// CreateAdminUser handles the creation of a new admin user.
-func (h *UserHandler) CreateAdminUser(c echo.Context) error {
-	user := new(models.User)
-	if err := c.Bind(user); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid input"})
-	}
 
-	if err := h.Service.CreateAdminUser(user); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not create admin user", "details": err.Error()})
-	}
-
-	user.Contraseña = ""
-	return c.JSON(http.StatusCreated, user)
-}
-
-// CreateUser handles the creation of a new standard platform user.
-func (h *UserHandler) CreateUser(c echo.Context) error {
-	user := new(models.User)
-	if err := c.Bind(user); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid input"})
-	}
-
-	if err := h.Service.CreateUser(user); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not create user", "details": err.Error()})
-	}
-
-	user.Contraseña = ""
-	return c.JSON(http.StatusCreated, user)
-}
 
 // GetUser handles retrieving a user by their ID.
 func (h *UserHandler) GetUser(c echo.Context) error {

@@ -27,10 +27,16 @@ func (r *TaskRepository) GetTaskByID(id uint) (*models.Task, error) {
 	return &task, err
 }
 
-// GetTasksByUserStoryID retrieves all tasks for a given user story ID.
 func (r *TaskRepository) GetTasksByUserStoryID(userStoryID uint) ([]models.Task, error) {
 	var tasks []models.Task
-	err := r.DB.Where("user_story_id = ?", userStoryID).Preload("CreatedBy").Preload("AssignedTo").Find(&tasks).Error
+	err := r.DB.Where("user_story_id = ?", userStoryID).Preload("AssignedTo").Preload("CreatedBy").Find(&tasks).Error
+	return tasks, err
+}
+
+// GetTasksBySprintID retrieves all tasks for a given sprint ID.
+func (r *TaskRepository) GetTasksBySprintID(sprintID uint) ([]models.Task, error) {
+	var tasks []models.Task
+	err := r.DB.Joins("JOIN user_stories ON user_stories.id = tasks.user_story_id").Where("user_stories.sprint_id = ?", sprintID).Preload("AssignedTo").Preload("CreatedBy").Find(&tasks).Error
 	return tasks, err
 }
 

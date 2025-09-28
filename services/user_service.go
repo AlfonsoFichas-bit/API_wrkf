@@ -62,6 +62,16 @@ func (s *UserService) GetUserByEmail(email string) (*models.User, error) {
 	return s.Repo.GetUserByEmail(email)
 }
 
+// GetAllUsers retrieves all users.
+func (s *UserService) GetAllUsers() ([]models.User, error) {
+	return s.Repo.GetAllUsers()
+}
+
+// DeleteUser deletes a user.
+func (s *UserService) DeleteUser(id uint) error {
+	return s.Repo.DeleteUser(id)
+}
+
 func (s *UserService) Login(email, password string) (string, error) {
 	user, err := s.Repo.GetUserByEmail(email)
 	if err != nil {
