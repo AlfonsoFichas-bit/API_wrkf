@@ -21,6 +21,7 @@ vendor/
 # Test and coverage files
 *.test
 *.out
+*.exe
 
 # Log files
 *.log
