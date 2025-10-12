@@ -1,5 +1,13 @@
 # Gemini API Documentation
 
+## Base URL
+
+The base URL for all API endpoints is:
+
+```
+http://localhost:8080
+```
+
 This document provides a detailed description of the API endpoints, including request and response formats, and information about middleware.
 
 ## Authentication and Middleware
@@ -44,6 +52,24 @@ Authenticates a user and returns a JWT token.
     ```
 
 ### Users
+
+#### GET /api/me
+
+Retrieves the details of the currently authenticated user.
+
+-   **Response (200 OK):**
+
+    ```json
+    {
+        "ID": 1,
+        "Nombre": "John",
+        "ApellidoPaterno": "Doe",
+        "ApellidoMaterno": "Smith",
+        "Correo": "user@example.com",
+        "Role": "user",
+        "CreatedAt": "2023-10-27T10:00:00Z"
+    }
+    ```
 
 #### GET /api/users/:id
 

@@ -95,3 +95,29 @@ func (h *UserHandler) GetUser(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, user)
 }
+
+// GetCurrentUser godoc
+// @Summary      Get Current User
+// @Description  Retrieves the details of the currently authenticated user.
+// @Tags         Users
+// @Security     ApiKeyAuth
+// @Produce      json
+// @Success      200          {object}  models.User
+// @Failure      401          {object}  map[string]string
+// @Failure      404          {object}  map[string]string
+// @Failure      500          {object}  map[string]string
+// @Router       /me [get]
+func (h *UserHandler) GetCurrentUser(c echo.Context) error {
+	userID, ok := c.Get("userID").(uint)
+	if !ok {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "User ID not found in context"})
+	}
+
+	user, err := h.Service.GetUserByID(userID)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "User not found"})
+	}
+
+	user.Contraseña = "" // Never return the password hash
+	return c.JSON(http.StatusOK, user)
+}

@@ -21,6 +21,7 @@ func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler
 	api.Use(middleware.JWTAuthMiddleware(jwtSecret))
 
 	// User routes
+	api.GET("/me", userHandler.GetCurrentUser)
 	api.GET("/users/:id", userHandler.GetUser)
 
 	// Notification routes
@@ -57,7 +58,7 @@ func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler
 	api.DELETE("/tasks/:taskId", taskHandler.DeleteTask)
 	api.PUT("/tasks/:taskId/assign", taskHandler.AssignTask)
 	api.PUT("/tasks/:taskId/status", taskHandler.UpdateTaskStatus) // <-- NEW
-	api.POST("/tasks/:id/comments", taskHandler.AddComment)      // <-- NEW
+	api.POST("/tasks/:id/comments", taskHandler.AddComment)        // <-- NEW
 
 	// Sprint routes
 	api.POST("/projects/:id/sprints", sprintHandler.CreateSprint)
