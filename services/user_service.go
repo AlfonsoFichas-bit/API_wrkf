@@ -98,9 +98,6 @@ func (s *UserService) UpdateUser(id uint, updatedData *models.User) (*models.Use
 	if updatedData.Correo != "" {
 		user.Correo = updatedData.Correo
 	}
-	if updatedData.Role != "" {
-		user.Role = updatedData.Role
-	}
 
 	// If a new password is provided, hash it and update it
 	if updatedData.Contraseña != "" {

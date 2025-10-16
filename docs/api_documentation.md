@@ -196,8 +196,7 @@ Updates a user's information. (Admin only)
 
     ```json
     {
-        "Nombre": "Updated Name",
-        "Role": "user"
+        "Nombre": "Updated Name"
     }
     ```
 
