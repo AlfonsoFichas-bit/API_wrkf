@@ -21,6 +21,9 @@ func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler
 	api := e.Group("/api")
 	api.Use(middleware.JWTAuthMiddleware(jwtSecret))
 
+	// Authentication routes
+	api.POST("/logout", userHandler.Logout)
+
 	// User routes
 	api.GET("/me", userHandler.GetCurrentUser)
 	api.GET("/users/:id", userHandler.GetUser)

@@ -121,3 +121,14 @@ func (h *UserHandler) GetCurrentUser(c echo.Context) error {
 	user.Contraseña = "" // Never return the password hash
 	return c.JSON(http.StatusOK, user)
 }
+
+// Logout godoc
+// @Summary      User Logout
+// @Description  Logs out the user. In a JWT-based system, this is primarily a client-side action. This endpoint is provided for completeness.
+// @Tags         Authentication
+// @Security     ApiKeyAuth
+// @Success      200  {object}  map[string]string
+// @Router       /api/logout [post]
+func (h *UserHandler) Logout(c echo.Context) error {
+	return c.JSON(http.StatusOK, map[string]string{"message": "Logged out successfully"})
+}

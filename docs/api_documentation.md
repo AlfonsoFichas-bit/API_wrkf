@@ -43,6 +43,18 @@ Authenticates a user and returns a JWT token.
     }
     ```
 
+#### POST /api/logout
+
+Logs out the user. This endpoint is used to signal the server that the user is logging out. The client is responsible for deleting the JWT token from storage.
+
+-   **Response (200 OK):**
+
+    ```json
+    {
+        "message": "Logged out successfully"
+    }
+    ```
+
 ### Users
 
 #### GET /api/me
