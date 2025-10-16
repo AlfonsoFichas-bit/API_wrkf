@@ -62,6 +62,70 @@ func (s *UserService) GetUserByEmail(email string) (*models.User, error) {
 	return s.Repo.GetUserByEmail(email)
 }
 
+// GetAllUsers retrieves all users from the service layer.
+func (s *UserService) GetAllUsers() ([]models.User, error) {
+	users, err := s.Repo.GetAllUsers()
+	if err != nil {
+		return nil, err
+	}
+
+	// Clear passwords before returning
+	for i := range users {
+		users[i].Contraseña = ""
+	}
+
+	return users, nil
+}
+
+// UpdateUser handles the logic for updating a user's details.
+func (s *UserService) UpdateUser(id uint, updatedData *models.User) (*models.User, error) {
+	// Retrieve the existing user
+	user, err := s.Repo.GetUserByID(id)
+	if err != nil {
+		return nil, err // User not found
+	}
+
+	// Update fields if new values are provided
+	if updatedData.Nombre != "" {
+		user.Nombre = updatedData.Nombre
+	}
+	if updatedData.ApellidoPaterno != "" {
+		user.ApellidoPaterno = updatedData.ApellidoPaterno
+	}
+	if updatedData.ApellidoMaterno != "" {
+		user.ApellidoMaterno = updatedData.ApellidoMaterno
+	}
+	if updatedData.Correo != "" {
+		user.Correo = updatedData.Correo
+	}
+	if updatedData.Role != "" {
+		user.Role = updatedData.Role
+	}
+
+	// If a new password is provided, hash it and update it
+	if updatedData.Contraseña != "" {
+		hashedPass, err := hashPassword(updatedData.Contraseña)
+		if err != nil {
+			return nil, err
+		}
+		user.Contraseña = hashedPass
+	}
+
+	// Save the updated user to the database
+	if err := s.Repo.UpdateUser(user); err != nil {
+		return nil, err
+	}
+
+	// Clear password before returning the user
+	user.Contraseña = ""
+	return user, nil
+}
+
+// DeleteUser handles the logic for deleting a user by their ID.
+func (s *UserService) DeleteUser(id uint) error {
+	return s.Repo.DeleteUser(id)
+}
+
 func (s *UserService) Login(email, password string) (string, error) {
 	user, err := s.Repo.GetUserByEmail(email)
 	if err != nil {

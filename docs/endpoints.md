@@ -196,6 +196,13 @@ This document provides a reference for all the available endpoints in the API-wr
 
 All endpoints in this section require the user to have an `admin` platform role.
 
+### Get All Users
+
+-   **Endpoint:** `GET /api/admin/users`
+-   **Description:** Retrieves a list of all users.
+-   **Access:** Admin only
+-   **Success Response:** `200 OK`
+
 ### Create Standard User
 
 -   **Endpoint:** `POST /api/admin/users`

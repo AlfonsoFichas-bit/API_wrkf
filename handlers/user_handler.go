@@ -97,6 +97,79 @@ func (h *UserHandler) GetUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, user)
 }
 
+// GetAllUsers handles retrieving all users.
+// @Summary Get All Users
+// @Description Retrieves a list of all users. This is an admin-only endpoint.
+// @Tags Users
+// @Security ApiKeyAuth
+// @Produce json
+// @Success 200 {array} models.User
+// @Failure 500 {object} map[string]string
+// @Router /api/admin/users [get]
+func (h *UserHandler) GetAllUsers(c echo.Context) error {
+	users, err := h.Service.GetAllUsers()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not retrieve users"})
+	}
+	return c.JSON(http.StatusOK, users)
+}
+
+// UpdateUser handles updating a user's information.
+// @Summary Update User
+// @Description Updates a user's information. This is an admin-only endpoint.
+// @Tags Users
+// @Security ApiKeyAuth
+// @Accept json
+// @Produce json
+// @Param id path int true "User ID"
+// @Param user body models.User true "User data to update"
+// @Success 200 {object} models.User
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/admin/users/{id} [put]
+func (h *UserHandler) UpdateUser(c echo.Context) error {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid ID"})
+	}
+
+	user := new(models.User)
+	if err := c.Bind(user); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid input"})
+	}
+
+	updatedUser, err := h.Service.UpdateUser(uint(id), user)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not update user", "details": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, updatedUser)
+}
+
+// DeleteUser handles deleting a user by their ID.
+// @Summary Delete User
+// @Description Deletes a user by their ID. This is an admin-only endpoint.
+// @Tags Users
+// @Security ApiKeyAuth
+// @Param id path int true "User ID"
+// @Success 204 "No Content"
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/admin/users/{id} [delete]
+func (h *UserHandler) DeleteUser(c echo.Context) error {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid ID"})
+	}
+
+	if err := h.Service.DeleteUser(uint(id)); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not delete user", "details": err.Error()})
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
 // GetCurrentUser godoc
 // @Summary      Get Current User
 // @Description  Retrieves the details of the currently authenticated user.

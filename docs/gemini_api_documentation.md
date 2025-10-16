@@ -105,6 +105,35 @@ Retrieves a user by their ID.
 
 ### Admin - User Management
 
+#### GET /api/admin/users
+
+Retrieves a list of all users. (Admin only)
+
+- **Response (200 OK):**
+
+```json
+[
+    {
+        "ID": 1,
+        "Nombre": "Admin",
+        "ApellidoPaterno": "User",
+        "ApellidoMaterno": "",
+        "Correo": "admin@example.com",
+        "Role": "admin",
+        "CreatedAt": "2023-10-27T10:10:00Z"
+    },
+    {
+        "ID": 2,
+        "Nombre": "Jane",
+        "ApellidoPaterno": "Doe",
+        "ApellidoMaterno": "Smith",
+        "Correo": "jane.doe@example.com",
+        "Role": "user",
+        "CreatedAt": "2023-10-27T10:05:00Z"
+    }
+]
+```
+
 #### POST /api/admin/users
 
 Creates a new standard platform user. (Admin only)
@@ -164,6 +193,43 @@ Creates a new admin user. (Admin only)
         "CreatedAt": "2023-10-27T10:10:00Z"
     }
     ```
+
+#### PUT /api/admin/users/:id
+
+Updates a user's information. (Admin only)
+
+-   **Path Parameters:**
+    -   `id` (uint): The ID of the user to update.
+-   **Request Body:**
+
+    ```json
+    {
+        "Nombre": "Updated Name",
+        "Role": "user"
+    }
+    ```
+
+-   **Response (200 OK):**
+
+    ```json
+    {
+        "ID": 2,
+        "Nombre": "Updated Name",
+        "ApellidoPaterno": "Doe",
+        "ApellidoMaterno": "Smith",
+        "Correo": "jane.doe@example.com",
+        "Role": "user",
+        "CreatedAt": "2023-10-27T10:05:00Z"
+    }
+    ```
+
+#### DELETE /api/admin/users/:id
+
+Deletes a user. (Admin only)
+
+-   **Path Parameters:**
+    -   `id` (uint): The ID of the user to delete.
+-   **Response (204 No Content)**
 
 ### Public Admin Creation
 

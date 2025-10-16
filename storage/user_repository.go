@@ -28,3 +28,20 @@ func (r *UserRepository) GetUserByEmail(email string) (*models.User, error) {
 	err := r.DB.Where("correo = ?", email).First(&user).Error
 	return &user, err
 }
+
+// GetAllUsers retrieves all users from the database.
+func (r *UserRepository) GetAllUsers() ([]models.User, error) {
+	var users []models.User
+	err := r.DB.Find(&users).Error
+	return users, err
+}
+
+// UpdateUser saves the changes of a user model to the database.
+func (r *UserRepository) UpdateUser(user *models.User) error {
+	return r.DB.Save(user).Error
+}
+
+// DeleteUser removes a user from the database by their ID.
+func (r *UserRepository) DeleteUser(id uint) error {
+	return r.DB.Delete(&models.User{}, id).Error
+}

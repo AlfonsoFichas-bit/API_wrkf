@@ -78,8 +78,11 @@ func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler
 	admin.Use(middleware.AdminAuthMiddleware)
 
 	// Admin user management
+	admin.GET("/users", userHandler.GetAllUsers)
 	admin.POST("/users", userHandler.CreateUser)
 	admin.POST("/users/admin", userHandler.CreateAdminUser)
+	admin.PUT("/users/:id", userHandler.UpdateUser)
+	admin.DELETE("/users/:id", userHandler.DeleteUser)
 
 	// Admin project management
 	admin.POST("/projects/:id/members", projectHandler.AddMemberToProject)
