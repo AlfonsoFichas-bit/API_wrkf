@@ -15,6 +15,7 @@ func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler
 
 	// --- Public Routes ---
 	e.POST("/login", userHandler.Login)
+	e.POST("/create-admin", userHandler.CreateAdminUser)
 
 	// --- General Authenticated Routes ---
 	api := e.Group("/api")

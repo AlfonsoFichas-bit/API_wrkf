@@ -9,6 +9,7 @@ replace github.com/buga/API_wrkf => ./
 require (
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/labstack/echo/v4 v4.13.4
+	github.com/rs/cors v1.11.1
 	github.com/swaggo/echo-swagger v1.4.1
 	github.com/swaggo/swag v1.16.3
 	golang.org/x/crypto v0.38.0

@@ -153,6 +153,38 @@ Creates a new admin user. (Admin only)
     }
     ```
 
+### Public Admin Creation
+
+#### POST /create-admin
+
+Creates a new admin user. This is a public endpoint and should be used with caution.
+
+-   **Request Body:**
+
+    ```json
+    {
+        "Nombre": "Admin",
+        "ApellidoPaterno": "User",
+        "ApellidoMaterno": "",
+        "Correo": "newadmin@example.com",
+        "Contraseña": "strongpassword"
+    }
+    ```
+
+-   **Response (201 Created):**
+
+    ```json
+    {
+        "ID": 4,
+        "Nombre": "Admin",
+        "ApellidoPaterno": "User",
+        "ApellidoMaterno": "",
+        "Correo": "newadmin@example.com",
+        "Role": "admin",
+        "CreatedAt": "2023-10-27T10:12:00Z"
+    }
+    ```
+
 ### Projects
 
 #### POST /api/projects

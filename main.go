@@ -14,6 +14,7 @@ import (
 	"github.com/buga/API_wrkf/storage"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rs/cors"
 	"gorm.io/gorm"
 )
 
@@ -127,6 +128,27 @@ func main() {
 
 	// --- Inicializar Echo y configurar routes ---
 	e := echo.New()
+	// Configurar CORS
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{
+			"http://localhost:5173", // URL del frontend en desarrollo
+			"http://localhost:3000", // Si usas otro puerto
+		},
+		AllowedMethods: []string{
+			"GET",
+			"POST",
+			"PUT",
+			"DELETE",
+			"OPTIONS",
+		},
+		AllowedHeaders: []string{
+			"Content-Type",
+			"Authorization",
+			"X-Requested-With",
+		},
+		AllowCredentials: true,
+	})
+	e.Use(echo.WrapMiddleware(c.Handler))
 	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, userStoryHandler, taskHandler, notificationHandler, rubricHandler, cfg.JWTSecret)
 
 	// --- Iniciar Servidor ---
