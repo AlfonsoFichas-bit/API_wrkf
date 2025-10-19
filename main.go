@@ -133,6 +133,8 @@ func main() {
 		AllowedOrigins: []string{
 			"http://localhost:5173", // URL del frontend en desarrollo
 			"http://localhost:3000", // Si usas otro puerto
+			"http://127.0.0.1:5173",
+			"http://localhost:8000",
 		},
 		AllowedMethods: []string{
 			"GET",
