@@ -13,6 +13,7 @@ import (
 // ProjectService handles the business logic for projects.
 type ProjectService struct {
 	Repo                *storage.ProjectRepository
+	UserRepo            *storage.UserRepository // Injected
 	UserStoryRepo       *storage.UserStoryRepository
 	SprintRepo          *storage.SprintRepository
 	TaskRepo            *storage.TaskRepository
@@ -20,14 +21,25 @@ type ProjectService struct {
 }
 
 // NewProjectService creates a new instance of ProjectService.
-func NewProjectService(repo *storage.ProjectRepository, userStoryRepo *storage.UserStoryRepository, sprintRepo *storage.SprintRepository, taskRepo *storage.TaskRepository, notificationService *NotificationService) *ProjectService {
+func NewProjectService(repo *storage.ProjectRepository, userRepo *storage.UserRepository, userStoryRepo *storage.UserStoryRepository, sprintRepo *storage.SprintRepository, taskRepo *storage.TaskRepository, notificationService *NotificationService) *ProjectService {
 	return &ProjectService{
 		Repo:                repo,
+		UserRepo:            userRepo,
 		UserStoryRepo:       userStoryRepo,
 		SprintRepo:          sprintRepo,
 		TaskRepo:            taskRepo,
 		NotificationService: notificationService,
 	}
+}
+
+// GetUnassignedUsers retrieves users who are not admins and not already in the project.
+func (s *ProjectService) GetUnassignedUsers(projectID uint) ([]models.User, error) {
+	assignedUserIDs, err := s.Repo.GetMemberUserIDs(projectID)
+	if err != nil {
+		return nil, fmt.Errorf("could not get assigned user IDs: %w", err)
+	}
+
+	return s.UserRepo.GetNonAdminUsersNotInProject(assignedUserIDs)
 }
 
 // CreateProject handles the business logic for creating a new project.
@@ -38,6 +50,15 @@ func (s *ProjectService) CreateProject(project *models.Project, creatorID uint) 
 
 // AddMemberToProject handles the business logic for adding a user to a project.
 func (s *ProjectService) AddMemberToProject(projectID, userID uint, role string) (*models.ProjectMember, error) {
+	// Check if the user is already a member of the project
+	isMember, err := s.Repo.IsMember(projectID, userID)
+	if err != nil {
+		return nil, fmt.Errorf("could not verify project membership: %w", err)
+	}
+	if isMember {
+		return nil, fmt.Errorf("user is already a member of this project")
+	}
+
 	projectRole := models.ProjectRole(role)
 	if !projectRole.IsValid() {
 		return nil, fmt.Errorf("invalid project role: '%s'", role)

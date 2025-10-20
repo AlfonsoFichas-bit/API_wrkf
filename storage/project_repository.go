@@ -70,3 +70,20 @@ func (r *ProjectRepository) GetProjectMemberByID(id uint) (*models.ProjectMember
 	err := r.DB.Preload("User").First(&member, id).Error
 	return &member, err
 }
+
+// IsMember checks if a user is already a member of a project.
+func (r *ProjectRepository) IsMember(projectID, userID uint) (bool, error) {
+	var count int64
+	err := r.DB.Model(&models.ProjectMember{}).Where("project_id = ? AND user_id = ?", projectID, userID).Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
+// GetMemberUserIDs retrieves all user IDs for a given project.
+func (r *ProjectRepository) GetMemberUserIDs(projectID uint) ([]uint, error) {
+	var userIDs []uint
+	err := r.DB.Model(&models.ProjectMember{}).Where("project_id = ?", projectID).Pluck("user_id", &userIDs).Error
+	return userIDs, err
+}

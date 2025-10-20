@@ -113,7 +113,7 @@ func main() {
 
 	// Project Service (now with more dependencies)
 	projectRepo := storage.NewProjectRepository(db)
-	projectService := services.NewProjectService(projectRepo, userStoryRepo, sprintRepo, taskRepo, notificationService) // Inyectar notificationService
+	projectService := services.NewProjectService(projectRepo, userRepo, userStoryRepo, sprintRepo, taskRepo, notificationService) // Inyectar notificationService
 	projectHandler := handlers.NewProjectHandler(projectService)
 
 	// Other Services
@@ -134,7 +134,6 @@ func main() {
 			"http://localhost:5173", // URL del frontend en desarrollo
 			"http://localhost:3000", // Si usas otro puerto
 			"http://127.0.0.1:5173",
-			"http://localhost:8000",
 		},
 		AllowedMethods: []string{
 			"GET",

@@ -70,6 +70,9 @@ func (h *ProjectHandler) AddMemberToProject(c echo.Context) error {
 
 	member, err := h.Service.AddMemberToProject(uint(projectID), req.UserID, req.Role)
 	if err != nil {
+		if strings.Contains(err.Error(), "user is already a member") {
+			return c.JSON(http.StatusConflict, map[string]string{"error": err.Error()})
+		}
 		if strings.Contains(err.Error(), "invalid project role") {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 		}
@@ -147,4 +150,29 @@ func (h *ProjectHandler) DeleteProject(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+// GetUnassignedUsers godoc
+// @Summary      Get Unassigned Users
+// @Description  Retrieves a list of users who are not admins and are not already members of a specific project.
+// @Tags         Projects
+// @Produce      json
+// @Param        id   path      int  true  "Project ID"
+// @Success      200  {array}   models.User
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     ApiKeyAuth
+// @Router       /api/projects/{id}/unassigned-users [get]
+func (h *ProjectHandler) GetUnassignedUsers(c echo.Context) error {
+	projectID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid project ID"})
+	}
+
+	users, err := h.Service.GetUnassignedUsers(uint(projectID))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not retrieve unassigned users"})
+	}
+
+	return c.JSON(http.StatusOK, users)
 }

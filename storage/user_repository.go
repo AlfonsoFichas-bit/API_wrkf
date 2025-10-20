@@ -45,3 +45,16 @@ func (r *UserRepository) UpdateUser(user *models.User) error {
 func (r *UserRepository) DeleteUser(id uint) error {
 	return r.DB.Delete(&models.User{}, id).Error
 }
+
+// GetNonAdminUsersNotInProject retrieves all users who are not admins and are not in the provided list of IDs.
+func (r *UserRepository) GetNonAdminUsersNotInProject(assignedUserIDs []uint) ([]models.User, error) {
+	var users []models.User
+	db := r.DB.Where("role <> ?", models.RoleAdmin)
+
+	if len(assignedUserIDs) > 0 {
+		db = db.Where("id NOT IN ?", assignedUserIDs)
+	}
+
+	err := db.Find(&users).Error
+	return users, err
+}
