@@ -40,6 +40,7 @@ func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler
 	api.PUT("/projects/:id", projectHandler.UpdateProject)
 	api.DELETE("/projects/:id", projectHandler.DeleteProject)
 	api.GET("/projects/:id/unassigned-users", projectHandler.GetUnassignedUsers) // <-- NEW
+	api.GET("/projects/:id/members", projectHandler.GetProjectMembers)
 
 	// Rubric routes
 	api.POST("/rubrics", rubricHandler.CreateRubric)

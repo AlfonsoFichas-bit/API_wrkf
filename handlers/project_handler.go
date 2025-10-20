@@ -176,3 +176,18 @@ func (h *ProjectHandler) GetUnassignedUsers(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, users)
 }
+
+// GetProjectMembers handles the HTTP request to retrieve all members of a project.
+func (h *ProjectHandler) GetProjectMembers(c echo.Context) error {
+	projectID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid project ID"})
+	}
+
+	members, err := h.Service.GetProjectMembers(uint(projectID))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not retrieve project members"})
+	}
+
+	return c.JSON(http.StatusOK, members)
+}

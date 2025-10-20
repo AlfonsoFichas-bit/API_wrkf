@@ -101,6 +101,11 @@ func (s *ProjectService) GetProjectByID(id uint) (*models.Project, error) {
 	return s.Repo.GetProjectByID(id)
 }
 
+// GetProjectMembers retrieves all members for a specific project.
+func (s *ProjectService) GetProjectMembers(projectID uint) ([]models.ProjectMember, error) {
+	return s.Repo.GetProjectMembers(projectID)
+}
+
 // UpdateProject handles the business logic for updating a project, including permission checks.
 func (s *ProjectService) UpdateProject(projectID uint, updates map[string]interface{}, requestingUserID uint, requestingUserRole string) (*models.Project, error) {
 	existingProject, err := s.Repo.GetProjectByID(projectID)

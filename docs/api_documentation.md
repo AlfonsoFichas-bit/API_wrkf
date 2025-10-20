@@ -389,6 +389,35 @@ Retrieves a list of users who can be added to a project. This list excludes exis
     ]
     ```
 
+#### GET /api/projects/:id/members
+
+Retrieves a list of all members for a specific project, including their user details and role within the project.
+
+-   **Path Parameters:**
+    -   `id` (uint): The ID of the project.
+-   **Response (200 OK):**
+
+    ```json
+    [
+        {
+            "ID": 1,
+            "UserID": 2,
+            "User": {
+                "ID": 2,
+                "Nombre": "Jane",
+                "ApellidoPaterno": "Doe",
+                "ApellidoMaterno": "Smith",
+                "Correo": "jane.doe@example.com",
+                "Role": "user",
+                "CreatedAt": "2023-10-27T10:05:00Z"
+            },
+            "ProjectID": 1,
+            "Role": "team_developer",
+            "CreatedAt": "2023-10-27T10:25:00Z",
+            "UpdatedAt": "2023-10-27T10:25:00Z"
+        }
+    ]
+    ```
 
 ### Admin - Project Management
 

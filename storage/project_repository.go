@@ -39,6 +39,13 @@ func (r *ProjectRepository) GetProjectByID(id uint) (*models.Project, error) {
 	return &project, err
 }
 
+// GetProjectMembers retrieves all members for a given project, preloading user details.
+func (r *ProjectRepository) GetProjectMembers(projectID uint) ([]models.ProjectMember, error) {
+	var members []models.ProjectMember
+	err := r.DB.Preload("User").Where("project_id = ?", projectID).Find(&members).Error
+	return members, err
+}
+
 // UpdateProject updates an existing project in the database.
 func (r *ProjectRepository) UpdateProject(project *models.Project) error {
 	return r.DB.Save(project).Error
