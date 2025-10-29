@@ -12,11 +12,11 @@ import (
 )
 
 type UserService struct {
-	Repo      *storage.UserRepository
+	Repo      storage.IUserRepository // Use the interface
 	jwtSecret []byte
 }
 
-func NewUserService(repo *storage.UserRepository, jwtSecret string) *UserService {
+func NewUserService(repo storage.IUserRepository, jwtSecret string) *UserService {
 	return &UserService{
 		Repo:      repo,
 		jwtSecret: []byte(jwtSecret),
