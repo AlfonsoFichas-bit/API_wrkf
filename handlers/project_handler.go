@@ -191,3 +191,28 @@ func (h *ProjectHandler) GetProjectMembers(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, members)
 }
+
+// GetProjectBoard godoc
+// @Summary      Get Project Kanban Board
+// @Description  Retrieves all tasks for a project, structured by status for a Kanban board view.
+// @Tags         Projects
+// @Produce      json
+// @Param        id   path      int  true  "Project ID"
+// @Success      200  {object}  map[string][]models.Task
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     ApiKeyAuth
+// @Router       /api/projects/{id}/board [get]
+func (h *ProjectHandler) GetProjectBoard(c echo.Context) error {
+	projectID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid project ID"})
+	}
+
+	boardData, err := h.Service.GetProjectBoard(uint(projectID))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not retrieve project board data"})
+	}
+
+	return c.JSON(http.StatusOK, boardData)
+}

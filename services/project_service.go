@@ -13,7 +13,7 @@ import (
 // ProjectService handles the business logic for projects.
 type ProjectService struct {
 	Repo                *storage.ProjectRepository
-	UserRepo            *storage.UserRepository // Injected
+	UserRepo            storage.IUserRepository // Injected
 	UserStoryRepo       *storage.UserStoryRepository
 	SprintRepo          *storage.SprintRepository
 	TaskRepo            *storage.TaskRepository
@@ -21,7 +21,7 @@ type ProjectService struct {
 }
 
 // NewProjectService creates a new instance of ProjectService.
-func NewProjectService(repo *storage.ProjectRepository, userRepo *storage.UserRepository, userStoryRepo *storage.UserStoryRepository, sprintRepo *storage.SprintRepository, taskRepo *storage.TaskRepository, notificationService *NotificationService) *ProjectService {
+func NewProjectService(repo *storage.ProjectRepository, userRepo storage.IUserRepository, userStoryRepo *storage.UserStoryRepository, sprintRepo *storage.SprintRepository, taskRepo *storage.TaskRepository, notificationService *NotificationService) *ProjectService {
 	return &ProjectService{
 		Repo:                repo,
 		UserRepo:            userRepo,
@@ -188,4 +188,26 @@ func (s *ProjectService) DeleteProject(projectID uint, requestingUserID uint, re
 // GetUserRoleInProject retrieves a user's role within a specific project.
 func (s *ProjectService) GetUserRoleInProject(userID, projectID uint) (string, error) {
 	return s.Repo.GetUserRoleInProject(userID, projectID)
+}
+
+// GetProjectBoard retrieves all tasks for a project and organizes them by status.
+func (s *ProjectService) GetProjectBoard(projectID uint) (map[string][]models.Task, error) {
+	tasks, err := s.TaskRepo.GetTasksByProjectID(projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Initialize the map to hold tasks grouped by status.
+	board := make(map[string][]models.Task)
+	board[string(models.StatusTodo)] = []models.Task{}
+	board[string(models.StatusInProgress)] = []models.Task{}
+	board[string(models.StatusInReview)] = []models.Task{}
+	board[string(models.StatusDone)] = []models.Task{}
+
+	// Group tasks by their status.
+	for _, task := range tasks {
+		board[task.Status] = append(board[task.Status], task)
+	}
+
+	return board, nil
 }

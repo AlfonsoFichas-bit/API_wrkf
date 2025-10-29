@@ -53,3 +53,14 @@ func (r *TaskRepository) DeleteTasksByUserStoryIDs(tx *gorm.DB, storyIDs []uint)
 func (r *TaskRepository) AddComment(comment *models.TaskComment) error {
 	return r.DB.Create(comment).Error
 }
+
+// GetTasksByProjectID retrieves all tasks for a given project ID by joining through user stories.
+func (r *TaskRepository) GetTasksByProjectID(projectID uint) ([]models.Task, error) {
+	var tasks []models.Task
+	err := r.DB.
+		Joins("JOIN user_stories ON user_stories.id = tasks.user_story_id").
+		Where("user_stories.project_id = ?", projectID).
+		Preload("AssignedTo").
+		Find(&tasks).Error
+	return tasks, err
+}

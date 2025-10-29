@@ -41,6 +41,7 @@ func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler
 	api.DELETE("/projects/:id", projectHandler.DeleteProject)
 	api.GET("/projects/:id/unassigned-users", projectHandler.GetUnassignedUsers) // <-- NEW
 	api.GET("/projects/:id/members", projectHandler.GetProjectMembers)
+	api.GET("/projects/:id/board", projectHandler.GetProjectBoard) // Kanban board endpoint
 
 	// Rubric routes
 	api.POST("/rubrics", rubricHandler.CreateRubric)
