@@ -1,4 +1,4 @@
-package routes
+package routes_test
 
 import (
 	"bytes"
@@ -10,6 +10,7 @@ import (
 	"github.com/buga/API_wrkf/config"
 	"github.com/buga/API_wrkf/handlers"
 	"github.com/buga/API_wrkf/models"
+	"github.com/buga/API_wrkf/routes"
 	"github.com/buga/API_wrkf/services"
 	"github.com/buga/API_wrkf/storage"
 	"github.com/labstack/echo/v4"
@@ -51,7 +52,6 @@ func setupTestApp() (*echo.Echo, *gorm.DB) {
     sprintService := services.NewSprintService(sprintRepo)
     sprintHandler := handlers.NewSprintHandler(sprintService)
 
-    sprintService = services.NewSprintService(sprintRepo)
     userStoryService := services.NewUserStoryService(userStoryRepo, projectService, sprintService)
     userStoryHandler := handlers.NewUserStoryHandler(userStoryService)
 
@@ -66,7 +66,7 @@ func setupTestApp() (*echo.Echo, *gorm.DB) {
 
 
 	e := echo.New()
-	SetupRoutes(e, userHandler, projectHandler, sprintHandler, userStoryHandler, taskHandler, notificationHandler, rubricHandler, cfg.JWTSecret)
+	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, userStoryHandler, taskHandler, notificationHandler, rubricHandler, cfg.JWTSecret)
 
 	return e, db
 }

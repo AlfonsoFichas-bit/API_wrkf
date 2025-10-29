@@ -1,18 +1,19 @@
-package services
+package services_test
 
 import (
 	"errors"
 	"testing"
 
 	"github.com/buga/API_wrkf/models"
-	"github.com/buga/API_wrkf/storage/mocks"
+	"github.com/buga/API_wrkf/services"
+	"github.com/buga/API_wrkf/tests/mocks"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func TestUserService_Login(t *testing.T) {
 	mockRepo := new(mocks.UserRepositoryMock)
-	userService := NewUserService(mockRepo, "test_secret")
+	userService := services.NewUserService(mockRepo, "test_secret")
 
 	password := "password123"
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
