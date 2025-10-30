@@ -126,6 +126,11 @@ func main() {
 	taskHandler := handlers.NewTaskHandler(taskService)
 	userStoryHandler := handlers.NewUserStoryHandler(userStoryService)
 
+	// Evaluation components
+	evaluationRepo := storage.NewEvaluationRepository(db)
+	evaluationService := services.NewEvaluationService(evaluationRepo, taskService, projectService)
+	evaluationHandler := handlers.NewEvaluationHandler(evaluationService)
+
 	// --- Inicializar Echo y configurar routes ---
 	e := echo.New()
 	// Configurar CORS
@@ -150,7 +155,7 @@ func main() {
 		AllowCredentials: true,
 	})
 	e.Use(echo.WrapMiddleware(c.Handler))
-	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, userStoryHandler, taskHandler, notificationHandler, rubricHandler, cfg.JWTSecret)
+	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, userStoryHandler, taskHandler, notificationHandler, rubricHandler, evaluationHandler, cfg.JWTSecret)
 
 	// --- Iniciar Servidor ---
 	fmt.Println("Iniciando el servidor en el puerto 8080...")

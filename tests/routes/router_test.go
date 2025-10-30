@@ -67,7 +67,11 @@ func setupTestApp() (*echo.Echo, *gorm.DB) {
 
 
 	e := echo.New()
-	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, userStoryHandler, taskHandler, notificationHandler, rubricHandler, cfg.JWTSecret)
+	evaluationRepo := storage.NewEvaluationRepository(db)
+	evaluationService := services.NewEvaluationService(evaluationRepo, taskService, projectService)
+	evaluationHandler := handlers.NewEvaluationHandler(evaluationService)
+
+	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, userStoryHandler, taskHandler, notificationHandler, rubricHandler, evaluationHandler, cfg.JWTSecret)
 
 	return e, db
 }
@@ -163,6 +167,65 @@ func TestProjectBoardEndpoint(t *testing.T) {
 			assert.Len(t, response["done"], 0)
 			assert.Equal(t, "Todo Task", response["todo"][0].Title)
 			assert.Equal(t, "In Progress Task", response["in_progress"][0].Title)
+		}
+	})
+}
+
+func TestCreateEvaluationEndpoint(t *testing.T) {
+	e, db := setupTestApp()
+
+	// --- Setup Test Data ---
+	user := models.User{Nombre: "evaluator", Correo: "evaluator@example.com", Contraseña: "password"}
+	db.Create(&user)
+	project := models.Project{Name: "Evaluation Project", CreatedByID: user.ID}
+	db.Create(&project)
+	// Assign user to project with a valid role for evaluation
+	projectMember := models.ProjectMember{ProjectID: project.ID, UserID: user.ID, Role: string(models.RoleProductOwner)}
+	db.Create(&projectMember)
+	userStory := models.UserStory{Title: "Evaluation Story", ProjectID: project.ID, CreatedByID: user.ID}
+	db.Create(&userStory)
+	task := models.Task{Title: "Deliverable Task", UserStoryID: userStory.ID, IsDeliverable: true, CreatedByID: user.ID}
+	db.Create(&task)
+
+	// --- Test Case ---
+	t.Run("Create Evaluation for Deliverable", func(t *testing.T) {
+		evaluationData := map[string]interface{}{
+			"evaluatorId": user.ID,
+			"score":       95.5,
+			"comments":    "Excellent work!",
+		}
+		jsonBody, _ := json.Marshal(evaluationData)
+
+		req := httptest.NewRequest(http.MethodPost, "/api/tasks/"+strconv.Itoa(int(task.ID))+"/evaluations", bytes.NewBuffer(jsonBody))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec := httptest.NewRecorder()
+
+		// Create a fake context
+		c := e.NewContext(req, rec)
+		c.Set("userID", float64(user.ID))
+		c.SetParamNames("id")
+		c.SetParamValues(strconv.Itoa(int(task.ID)))
+
+		// Instantiate the handler with real dependencies
+		userRepo := storage.NewUserRepository(db)
+		projectRepo := storage.NewProjectRepository(db)
+		taskRepo := storage.NewTaskRepository(db)
+		notificationRepo := storage.NewNotificationRepository(db)
+		notificationService := services.NewNotificationService(notificationRepo)
+		projectService := services.NewProjectService(projectRepo, userRepo, nil, nil, nil, notificationService) // Some dependencies can be nil if not used in this specific test path
+		taskService := services.NewTaskService(taskRepo, projectService, notificationService)
+		evalRepo := storage.NewEvaluationRepository(db)
+		evalService := services.NewEvaluationService(evalRepo, taskService, projectService)
+		evalHandler := handlers.NewEvaluationHandler(evalService)
+
+		// This will fail initially because the handler returns 501 Not Implemented
+		if assert.NoError(t, evalHandler.CreateEvaluation(c)) {
+			assert.Equal(t, http.StatusCreated, rec.Code)
+
+			var response models.Evaluation
+			json.Unmarshal(rec.Body.Bytes(), &response)
+			assert.Equal(t, uint(task.ID), response.TaskID)
+			assert.Equal(t, "Excellent work!", response.Comments)
 		}
 	})
 }

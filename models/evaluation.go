@@ -2,48 +2,39 @@ package models
 
 import "time"
 
+// Evaluation represents the assessment of a deliverable task.
 type Evaluation struct {
-	ID                   uint   `gorm:"primaryKey"`
-	DeliverableID        uint   `gorm:"not null"`
-	Deliverable          Task   `gorm:"foreignKey:DeliverableID"`
-	EvaluatorID          uint   `gorm:"not null"`
-	Evaluator            User   `gorm:"foreignKey:EvaluatorID"`
-	StudentID            uint   `gorm:"not null"`
-	Student              User   `gorm:"foreignKey:StudentID"`
-	RubricID             uint   `gorm:"not null"`
-	Rubric               Rubric `gorm:"foreignKey:RubricID"`
-	OverallFeedback      string
-	TotalScore           int    `gorm:"not null"`
-	MaxPossibleScore     int    `gorm:"not null"`
-	Status               string `gorm:"not null;default:'draft'"`
-	EvaluatedAt          *time.Time
-	CreatedAt            time.Time             `gorm:"autoCreateTime"`
-	UpdatedAt            time.Time             `gorm:"autoUpdateTime"`
-	CriterionEvaluations []CriterionEvaluation `gorm:"foreignKey:EvaluationID"`
+	ID          uint      `gorm:"primaryKey"`
+	TaskID      uint      `gorm:"uniqueIndex;not null"` // An evaluation is unique to a task
+	Task        Task      `gorm:"foreignKey:TaskID"`
+	EvaluatorID uint      `gorm:"not null"` // User ID of the evaluator (e.g., Product Owner)
+	Evaluator   User      `gorm:"foreignKey:EvaluatorID"`
+	RubricID    uint      // Optional: Rubric used for this evaluation
+	Rubric      Rubric    `gorm:"foreignKey:RubricID"`
+	Score       float32   // Final calculated score
+	Comments    string    `gorm:"type:text"` // General feedback or summary
+	CreatedAt   time.Time `gorm:"autoCreateTime"`
+	UpdatedAt   time.Time `gorm:"autoUpdateTime"`
+	Criteria    []CriterionEvaluation
+	Feedback    []FeedbackComment
 }
 
+// CriterionEvaluation stores the score for a single criterion from the rubric.
 type CriterionEvaluation struct {
-	ID           uint            `gorm:"primaryKey"`
-	EvaluationID uint            `gorm:"not null"`
-	CriterionID  uint            `gorm:"not null"`
-	Criterium    RubricCriterion `gorm:"foreignKey:CriterionID"` // Changed from RubricCriterium
-	Score        int             `gorm:"not null"`
-	Feedback     string
-	CreatedAt    time.Time `gorm:"autoCreateTime"`
-	UpdatedAt    time.Time `gorm:"autoUpdateTime"`
+	ID                uint            `gorm:"primaryKey"`
+	EvaluationID      uint            `gorm:"not null"`
+	RubricCriterionID uint            `gorm:"not null"` // The criterion from the original rubric
+	RubricCriterion   RubricCriterion `gorm:"foreignKey:RubricCriterionID"`
+	Score             float32         `gorm:"not null"`
+	Comment           string          // Optional comment specific to this criterion
 }
 
-type Attachment struct {
-	ID            uint      `gorm:"primaryKey"`
-	DeliverableID uint      `gorm:"not null"`
-	Deliverable   Task      `gorm:"foreignKey:DeliverableID"`
-	FileName      string    `gorm:"not null"`
-	FileType      string    `gorm:"not null"`
-	FileSize      int       `gorm:"not null"`
-	URL           string    `gorm:"not null"`
-	UploadedByID  uint      `gorm:"not null"`
-	UploadedBy    User      `gorm:"foreignKey:UploadedByID"`
-	UploadedAt    time.Time `gorm:"autoCreateTime"`
-	CreatedAt     time.Time `gorm:"autoCreateTime"`
-	UpdatedAt     time.Time `gorm:"autoUpdateTime"`
+// FeedbackComment allows for specific, threaded-style comments on an evaluation.
+type FeedbackComment struct {
+	ID           uint      `gorm:"primaryKey"`
+	EvaluationID uint      `gorm:"not null"`
+	AuthorID     uint      `gorm:"not null"`
+	Author       User      `gorm:"foreignKey:AuthorID"`
+	Content      string    `gorm:"type:text;not null"`
+	CreatedAt    time.Time `gorm:"autoCreateTime"`
 }

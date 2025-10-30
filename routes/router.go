@@ -9,7 +9,7 @@ import (
 )
 
 // SetupRoutes configures the application routes.
-func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler *handlers.ProjectHandler, sprintHandler *handlers.SprintHandler, userStoryHandler *handlers.UserStoryHandler, taskHandler *handlers.TaskHandler, notificationHandler *handlers.NotificationHandler, rubricHandler *handlers.RubricHandler, jwtSecret string) {
+func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler *handlers.ProjectHandler, sprintHandler *handlers.SprintHandler, userStoryHandler *handlers.UserStoryHandler, taskHandler *handlers.TaskHandler, notificationHandler *handlers.NotificationHandler, rubricHandler *handlers.RubricHandler, evaluationHandler *handlers.EvaluationHandler, jwtSecret string) {
 	// --- Swagger Route ---
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
@@ -89,4 +89,9 @@ func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler
 
 	// Admin project management
 	admin.POST("/projects/:id/members", projectHandler.AddMemberToProject)
+
+	// --- Evaluation Routes ---
+	api.POST("/tasks/:id/evaluations", evaluationHandler.CreateEvaluation)
+	api.GET("/tasks/:id/evaluations", evaluationHandler.GetEvaluation)
+	api.PUT("/evaluations/:evalId", evaluationHandler.UpdateEvaluation)
 }

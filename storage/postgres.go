@@ -37,6 +37,7 @@ func Migrate(db *gorm.DB) error {
 		&models.RubricCriterionLevel{},
 		&models.Evaluation{},
 		&models.CriterionEvaluation{},
+		&models.FeedbackComment{},
 		&models.Attachment{},
 		&models.Conversation{},
 		&models.ConversationMember{},

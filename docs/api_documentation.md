@@ -459,31 +459,6 @@ Adds a member to a project. (Admin only)
     }
     ```
 
-#### GET /api/projects/:id/board
-
-Retrieves all tasks for a project, structured by status for a Kanban board view.
-
--   **Path Parameters:**
-    -   `id` (uint): The ID of the project.
--   **Response (200 OK):**
-
-    ```json
-    {
-        "todo": [
-            {
-                "ID": 1,
-                "Title": "Task 1",
-                "Description": "...",
-                "Status": "todo",
-                "AssignedTo": { "ID": 2, "Nombre": "Jane Doe" }
-            }
-        ],
-        "in_progress": [],
-        "in_review": [],
-        "done": []
-    }
-    ```
-
 ### Sprints
 
 #### POST /api/projects/:id/sprints
@@ -964,6 +939,37 @@ Adds a comment to a task.
         "Content": "This is a comment.",
         "CreatedAt": "2023-10-27T11:15:00Z",
         "UpdatedAt": "2023-10-27T11:15:00Z"
+    }
+    ```
+
+### Evaluations
+
+#### POST /api/tasks/:id/evaluations
+
+Creates a new evaluation for a deliverable task.
+
+-   **Path Parameters:**
+    -   `id` (uint): The ID of the task to be evaluated.
+-   **Request Body:**
+
+    ```json
+    {
+        "score": 95.5,
+        "comments": "Excellent work on the implementation."
+    }
+    ```
+
+-   **Response (201 Created):**
+
+    ```json
+    {
+        "ID": 1,
+        "TaskID": 1,
+        "EvaluatorID": 1,
+        "Score": 95.5,
+        "Comments": "Excellent work on the implementation.",
+        "CreatedAt": "2023-11-01T10:00:00Z",
+        "UpdatedAt": "2023-11-01T10:00:00Z"
     }
     ```
 
