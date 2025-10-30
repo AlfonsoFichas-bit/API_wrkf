@@ -47,6 +47,7 @@ func NewTestRouter(cfg *config.AppConfig) (*TestRouter, error) {
 	userStoryRepo := storage.NewUserStoryRepository(db)
 	notificationRepo := storage.NewNotificationRepository(db)
 	rubricRepo := storage.NewRubricRepository(db)
+	evaluationRepo := storage.NewEvaluationRepository(db)
 	burndownRepo := storage.NewBurndownRepository(db)
 
 	// Services
@@ -57,6 +58,7 @@ func NewTestRouter(cfg *config.AppConfig) (*TestRouter, error) {
 	taskService := services.NewTaskService(taskRepo, projectService, notificationService, hub)
 	userStoryService := services.NewUserStoryService(userStoryRepo, projectService, sprintService)
 	rubricService := services.NewRubricService(rubricRepo)
+	evaluationService := services.NewEvaluationService(evaluationRepo, rubricRepo)
 	burndownService := services.NewBurndownService(burndownRepo)
 
 	// Handlers
@@ -67,11 +69,12 @@ func NewTestRouter(cfg *config.AppConfig) (*TestRouter, error) {
 	userStoryHandler := handlers.NewUserStoryHandler(userStoryService)
 	notificationHandler := handlers.NewNotificationHandler(notificationService)
 	rubricHandler := handlers.NewRubricHandler(rubricService)
+	evaluationHandler := handlers.NewEvaluationHandler(evaluationService)
 	burndownHandler := handlers.NewBurndownHandler(burndownService)
 	websocketHandler := handlers.NewWebsocketHandler(hub, cfg.JWTSecret)
 
 	e := echo.New()
-	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, userStoryHandler, taskHandler, notificationHandler, rubricHandler, burndownHandler, websocketHandler, cfg.JWTSecret)
+	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, userStoryHandler, taskHandler, notificationHandler, rubricHandler, evaluationHandler, burndownHandler, websocketHandler, cfg.JWTSecret)
 
 	return &TestRouter{
 		Echo:           e,

@@ -62,6 +62,7 @@ func main() {
 	userStoryRepo := storage.NewUserStoryRepository(db)
 	notificationRepo := storage.NewNotificationRepository(db)
 	rubricRepo := storage.NewRubricRepository(db)
+	evaluationRepo := storage.NewEvaluationRepository(db)
 	burndownRepo := storage.NewBurndownRepository(db)
 
 	// --- Services ---
@@ -72,6 +73,7 @@ func main() {
 	taskService := services.NewTaskService(taskRepo, projectService, notificationService, hub)
 	userStoryService := services.NewUserStoryService(userStoryRepo, projectService, sprintService)
 	rubricService := services.NewRubricService(rubricRepo)
+	evaluationService := services.NewEvaluationService(evaluationRepo, rubricRepo)
 	burndownService := services.NewBurndownService(burndownRepo)
 
 	// --- Handlers ---
@@ -82,6 +84,7 @@ func main() {
 	userStoryHandler := handlers.NewUserStoryHandler(userStoryService)
 	notificationHandler := handlers.NewNotificationHandler(notificationService)
 	rubricHandler := handlers.NewRubricHandler(rubricService)
+	evaluationHandler := handlers.NewEvaluationHandler(evaluationService)
 	burndownHandler := handlers.NewBurndownHandler(burndownService)
 	websocketHandler := handlers.NewWebsocketHandler(hub, cfg.JWTSecret)
 
@@ -98,7 +101,7 @@ func main() {
 	})
 	e.Use(echo.WrapMiddleware(c.Handler))
 
-	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, userStoryHandler, taskHandler, notificationHandler, rubricHandler, burndownHandler, websocketHandler, cfg.JWTSecret)
+	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, userStoryHandler, taskHandler, notificationHandler, rubricHandler, evaluationHandler, burndownHandler, websocketHandler, cfg.JWTSecret)
 
 	// --- Start Server ---
 	fmt.Println("Iniciando el servidor en el puerto 8080...")

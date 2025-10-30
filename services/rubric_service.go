@@ -17,36 +17,36 @@ type RubricService interface {
 }
 
 type rubricService struct {
-	repo storage.RubricRepository
+	repo storage.IRubricRepository
 }
 
 // NewRubricService creates a new instance of RubricService.
-func NewRubricService(repo storage.RubricRepository) RubricService {
+func NewRubricService(repo storage.IRubricRepository) RubricService {
 	return &rubricService{repo: repo}
 }
 
 func (s *rubricService) CreateRubric(rubric *models.Rubric) error {
-	return s.repo.Create(rubric)
+	return s.repo.CreateRubric(rubric)
 }
 
 func (s *rubricService) GetAllRubrics(filters map[string]interface{}) ([]models.Rubric, error) {
-	return s.repo.FindAll(filters)
+	return s.repo.GetAllRubrics(filters)
 }
 
 func (s *rubricService) GetRubricByID(id uint) (*models.Rubric, error) {
-	return s.repo.FindByID(id)
+	return s.repo.GetRubricByID(id)
 }
 
 func (s *rubricService) UpdateRubric(rubric *models.Rubric) error {
-	return s.repo.Update(rubric)
+	return s.repo.UpdateRubric(rubric)
 }
 
 func (s *rubricService) DeleteRubric(id uint) error {
-	return s.repo.Delete(id)
+	return s.repo.DeleteRubric(id)
 }
 
 func (s *rubricService) DuplicateRubric(id uint) (*models.Rubric, error) {
-	original, err := s.repo.FindByID(id)
+	original, err := s.repo.GetRubricByID(id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find original rubric: %w", err)
 	}
@@ -74,7 +74,7 @@ func (s *rubricService) DuplicateRubric(id uint) (*models.Rubric, error) {
 		newRubric.Criteria[i] = newCrit
 	}
 
-	if err := s.repo.Create(&newRubric); err != nil {
+	if err := s.repo.CreateRubric(&newRubric); err != nil {
 		return nil, fmt.Errorf("failed to create duplicated rubric: %w", err)
 	}
 
