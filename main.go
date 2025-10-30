@@ -12,6 +12,7 @@ import (
 	"github.com/buga/API_wrkf/routes"
 	"github.com/buga/API_wrkf/services"
 	"github.com/buga/API_wrkf/storage"
+	"github.com/buga/API_wrkf/websocket"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/cors"
@@ -68,6 +69,10 @@ func createAdminUserIfNeeded(userService *services.UserService, adminCfg *config
 }
 
 func main() {
+	// WebSocket Hub
+	hub := websocket.NewHub()
+	go hub.Run()
+
 	// Cargar configuración de la aplicación
 	cfg := config.LoadConfig()
 
@@ -118,7 +123,7 @@ func main() {
 
 	// Other Services
 	sprintService := services.NewSprintService(sprintRepo)
-	taskService := services.NewTaskService(taskRepo, projectService, notificationService)
+	taskService := services.NewTaskService(taskRepo, projectService, notificationService, hub)
 	userStoryService := services.NewUserStoryService(userStoryRepo, projectService, sprintService)
 
 	// Handlers
@@ -126,10 +131,8 @@ func main() {
 	taskHandler := handlers.NewTaskHandler(taskService)
 	userStoryHandler := handlers.NewUserStoryHandler(userStoryService)
 
-	// Evaluation components
-	evaluationRepo := storage.NewEvaluationRepository(db)
-	evaluationService := services.NewEvaluationService(evaluationRepo, taskService, projectService)
-	evaluationHandler := handlers.NewEvaluationHandler(evaluationService)
+	// Websocket handler
+	websocketHandler := handlers.NewWebsocketHandler(hub)
 
 	// --- Inicializar Echo y configurar routes ---
 	e := echo.New()
@@ -155,7 +158,7 @@ func main() {
 		AllowCredentials: true,
 	})
 	e.Use(echo.WrapMiddleware(c.Handler))
-	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, userStoryHandler, taskHandler, notificationHandler, rubricHandler, evaluationHandler, cfg.JWTSecret)
+	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, userStoryHandler, taskHandler, notificationHandler, rubricHandler, websocketHandler, cfg.JWTSecret)
 
 	// --- Iniciar Servidor ---
 	fmt.Println("Iniciando el servidor en el puerto 8080...")

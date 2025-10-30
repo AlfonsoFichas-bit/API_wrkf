@@ -1,11 +1,13 @@
 package services
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 
 	"github.com/buga/API_wrkf/models"
 	"github.com/buga/API_wrkf/storage"
+	"github.com/buga/API_wrkf/websocket"
 )
 
 // TaskService handles the business logic for tasks.
@@ -13,14 +15,16 @@ type TaskService struct {
 	Repo                *storage.TaskRepository
 	ProjectService      *ProjectService // Dependency to check project membership
 	NotificationService *NotificationService
+	Hub                 *websocket.Hub
 }
 
 // NewTaskService creates a new instance of TaskService.
-func NewTaskService(repo *storage.TaskRepository, projectService *ProjectService, notificationService *NotificationService) *TaskService {
+func NewTaskService(repo *storage.TaskRepository, projectService *ProjectService, notificationService *NotificationService, hub *websocket.Hub) *TaskService {
 	return &TaskService{
 		Repo:                repo,
 		ProjectService:      projectService,
 		NotificationService: notificationService,
+		Hub:                 hub,
 	}
 }
 
@@ -111,7 +115,32 @@ func (s *TaskService) UpdateTaskStatus(taskID uint, newStatus string) (*models.T
 	task.Status = newStatus
 
 	// 4. Save and return the updated, hydrated task.
-	return s.UpdateTask(task)
+	updatedTask, err := s.UpdateTask(task)
+	if err != nil {
+		return nil, err
+	}
+
+	// 5. Broadcast the updated task to connected clients.
+	payload, err := json.Marshal(updatedTask)
+	if err != nil {
+		log.Printf("error marshalling task for broadcast payload: %v", err)
+	} else {
+		broadcastMessage := struct {
+			ProjectID uint            `json:"projectId"`
+			Payload   json.RawMessage `json:"payload"`
+		}{
+			ProjectID: updatedTask.UserStory.ProjectID,
+			Payload:   payload,
+		}
+		message, err := json.Marshal(broadcastMessage)
+		if err != nil {
+			log.Printf("error marshalling broadcast message wrapper: %v", err)
+		} else {
+			s.Hub.Broadcast <- message
+		}
+	}
+
+	return updatedTask, nil
 }
 
 // AddCommentToTask adds a comment to a task and notifies the assignee.

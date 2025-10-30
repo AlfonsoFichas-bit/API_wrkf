@@ -973,6 +973,27 @@ Creates a new evaluation for a deliverable task.
     }
     ```
 
+### WebSockets
+
+#### GET /api/ws/projects/:id/board
+
+Establishes a WebSocket connection to receive real-time updates for a project's Kanban board.
+
+-   **Path Parameters:**
+    -   `id` (uint): The ID of the project to subscribe to.
+-   **Authentication:** Requires a valid JWT token. The token should be sent as a query parameter `?token=<your_jwt_token>` or handled by the client library.
+-   **Messages:**
+    -   **Task Updates:** When a task's status is updated, a message with the full updated task object will be sent to all clients connected to that project's board.
+
+    ```json
+    {
+        "ID": 1,
+        "Title": "Updated Task Title",
+        "Status": "in_progress",
+        // ... other task fields
+    }
+    ```
+
 ### Notifications
 
 #### GET /api/notifications
