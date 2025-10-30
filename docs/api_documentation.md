@@ -942,37 +942,6 @@ Adds a comment to a task.
     }
     ```
 
-### Evaluations
-
-#### POST /api/tasks/:id/evaluations
-
-Creates a new evaluation for a deliverable task.
-
--   **Path Parameters:**
-    -   `id` (uint): The ID of the task to be evaluated.
--   **Request Body:**
-
-    ```json
-    {
-        "score": 95.5,
-        "comments": "Excellent work on the implementation."
-    }
-    ```
-
--   **Response (201 Created):**
-
-    ```json
-    {
-        "ID": 1,
-        "TaskID": 1,
-        "EvaluatorID": 1,
-        "Score": 95.5,
-        "Comments": "Excellent work on the implementation.",
-        "CreatedAt": "2023-11-01T10:00:00Z",
-        "UpdatedAt": "2023-11-01T10:00:00Z"
-    }
-    ```
-
 ### WebSockets
 
 #### GET /api/ws/projects/:id/board
@@ -983,14 +952,20 @@ Establishes a WebSocket connection to receive real-time updates for a project's 
     -   `id` (uint): The ID of the project to subscribe to.
 -   **Authentication:** Requires a valid JWT token. The token should be sent as a query parameter `?token=<your_jwt_token>` or handled by the client library.
 -   **Messages:**
-    -   **Task Updates:** When a task's status is updated, a message with the full updated task object will be sent to all clients connected to that project's board.
+    -   Clients will receive messages in a standardized format with a `type` and a `payload`.
+    -   **Task Created (`TASK_CREATED`):** Sent when a new task is created in the project.
+    -   **Task Updated (`TASK_UPDATED`):** Sent when a task is updated (e.g., status change, assignment, title edit).
 
+    **Example Message Structure:**
     ```json
     {
-        "ID": 1,
-        "Title": "Updated Task Title",
-        "Status": "in_progress",
-        // ... other task fields
+        "type": "TASK_UPDATED",
+        "payload": {
+            "ID": 1,
+            "Title": "Updated Task Title",
+            "Status": "in_progress",
+            // ... other task fields
+        }
     }
     ```
 

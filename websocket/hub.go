@@ -42,18 +42,25 @@ func (h *Hub) Run() {
 			}
 		case message := <-h.Broadcast:
 			var msgData struct {
-				ProjectID uint            `json:"projectId"`
-				Payload   json.RawMessage `json:"payload"`
+				ProjectID uint    `json:"projectId"`
+				Payload   Message `json:"payload"`
 			}
 			if err := json.Unmarshal(message, &msgData); err != nil {
 				log.Printf("error unmarshalling broadcast message: %v", err)
 				continue
 			}
 
+			// Re-marshal the inner payload to send to clients
+			finalPayload, err := json.Marshal(msgData.Payload)
+			if err != nil {
+				log.Printf("error re-marshalling payload for client: %v", err)
+				continue
+			}
+
 			for _, client := range h.Clients {
 				if client.ProjectID == msgData.ProjectID {
 					select {
-					case client.Send <- msgData.Payload:
+					case client.Send <- finalPayload:
 					default:
 						close(client.Send)
 						delete(h.Clients, client.UserID)

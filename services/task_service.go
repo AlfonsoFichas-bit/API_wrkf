@@ -37,7 +37,18 @@ func (s *TaskService) CreateTask(task *models.Task, userStoryID uint, creatorID 
 		return nil, err
 	}
 
-	return s.Repo.GetTaskByID(task.ID)
+	// After creating, get the full task object to broadcast
+	createdTask, err := s.Repo.GetTaskByID(task.ID)
+	if err != nil {
+		// Log the error but don't fail the operation, as the task was created.
+		log.Printf("error getting created task for broadcast: %v", err)
+		return task, nil // Return the basic task object
+	}
+
+	// Broadcast the new task
+	s.broadcastTaskUpdate(websocket.MessageTypeTaskCreated, *createdTask)
+
+	return createdTask, nil
 }
 
 // GetTaskByID retrieves a single task by its ID.
@@ -55,7 +66,16 @@ func (s *TaskService) UpdateTask(task *models.Task) (*models.Task, error) {
 	if err := s.Repo.UpdateTask(task); err != nil {
 		return nil, err
 	}
-	return s.Repo.GetTaskByID(task.ID)
+	updatedTask, err := s.Repo.GetTaskByID(task.ID)
+	if err != nil {
+		log.Printf("error getting updated task for broadcast: %v", err)
+		return task, nil
+	}
+
+	// Broadcast the update
+	s.broadcastTaskUpdate(websocket.MessageTypeTaskUpdated, *updatedTask)
+
+	return updatedTask, nil
 }
 
 // DeleteTask handles the business logic for deleting a task.
@@ -120,27 +140,37 @@ func (s *TaskService) UpdateTaskStatus(taskID uint, newStatus string) (*models.T
 		return nil, err
 	}
 
-	// 5. Broadcast the updated task to connected clients.
-	payload, err := json.Marshal(updatedTask)
+	// The broadcast is now handled by UpdateTask, so this is clean.
+	return updatedTask, nil
+}
+
+// broadcastTaskUpdate is a helper to marshal and broadcast a task update.
+func (s *TaskService) broadcastTaskUpdate(msgType websocket.MessageType, task models.Task) {
+	payload, err := json.Marshal(task)
 	if err != nil {
-		log.Printf("error marshalling task for broadcast payload: %v", err)
-	} else {
-		broadcastMessage := struct {
-			ProjectID uint            `json:"projectId"`
-			Payload   json.RawMessage `json:"payload"`
-		}{
-			ProjectID: updatedTask.UserStory.ProjectID,
-			Payload:   payload,
-		}
-		message, err := json.Marshal(broadcastMessage)
-		if err != nil {
-			log.Printf("error marshalling broadcast message wrapper: %v", err)
-		} else {
-			s.Hub.Broadcast <- message
-		}
+		log.Printf("error marshalling task for broadcast: %v", err)
+		return
 	}
 
-	return updatedTask, nil
+	// Create the outer message with the project ID for routing
+	broadcastMessage := struct {
+		ProjectID uint                `json:"projectId"`
+		Payload   websocket.Message `json:"payload"`
+	}{
+		ProjectID: task.UserStory.ProjectID,
+		Payload: websocket.Message{
+			Type:    msgType,
+			Payload: payload,
+		},
+	}
+
+	message, err := json.Marshal(broadcastMessage)
+	if err != nil {
+		log.Printf("error marshalling broadcast wrapper: %v", err)
+		return
+	}
+
+	s.Hub.Broadcast <- message
 }
 
 // AddCommentToTask adds a comment to a task and notifies the assignee.
