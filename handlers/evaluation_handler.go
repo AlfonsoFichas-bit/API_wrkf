@@ -32,7 +32,7 @@ func (h *EvaluationHandler) CreateEvaluation(c echo.Context) error {
 
 func (h *EvaluationHandler) GetEvaluation(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
+	if err != nil || id < 0 {
 		return c.JSON(http.StatusBadRequest, "Invalid ID")
 	}
 
@@ -46,7 +46,7 @@ func (h *EvaluationHandler) GetEvaluation(c echo.Context) error {
 
 func (h *EvaluationHandler) GetStudentEvaluations(c echo.Context) error {
 	studentID, err := strconv.Atoi(c.Param("studentId"))
-	if err != nil {
+	if err != nil || studentID < 0 {
 		return c.JSON(http.StatusBadRequest, "Invalid Student ID")
 	}
 
