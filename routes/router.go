@@ -5,7 +5,7 @@ import (
 	"github.com/buga/API_wrkf/middleware"
 
 	"github.com/labstack/echo/v4"
-	echoSwagger "github.com/swaggo/echo-swagger" // Import echo-swagger
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 // SetupRoutes configures the application routes.
@@ -20,9 +20,6 @@ func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler
 	// --- General Authenticated Routes ---
 	api := e.Group("/api")
 	api.Use(middleware.JWTAuthMiddleware(jwtSecret))
-
-	// Authentication routes
-	api.POST("/logout", userHandler.Logout)
 
 	// User routes
 	api.GET("/me", userHandler.GetCurrentUser)
@@ -39,9 +36,9 @@ func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler
 	api.GET("/projects/:id", projectHandler.GetProjectByID)
 	api.PUT("/projects/:id", projectHandler.UpdateProject)
 	api.DELETE("/projects/:id", projectHandler.DeleteProject)
-	api.GET("/projects/:id/unassigned-users", projectHandler.GetUnassignedUsers) // <-- NEW
+	api.GET("/projects/:id/unassigned-users", projectHandler.GetUnassignedUsers)
 	api.GET("/projects/:id/members", projectHandler.GetProjectMembers)
-	api.GET("/projects/:id/board", projectHandler.GetProjectBoard) // Kanban board endpoint
+	api.GET("/projects/:id/board", projectHandler.GetProjectBoard)
 
 	// Rubric routes
 	api.POST("/rubrics", rubricHandler.CreateRubric)
@@ -64,8 +61,8 @@ func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler
 	api.PUT("/tasks/:taskId", taskHandler.UpdateTask)
 	api.DELETE("/tasks/:taskId", taskHandler.DeleteTask)
 	api.PUT("/tasks/:taskId/assign", taskHandler.AssignTask)
-	api.PUT("/tasks/:taskId/status", taskHandler.UpdateTaskStatus) // <-- NEW
-	api.POST("/tasks/:id/comments", taskHandler.AddComment)        // <-- NEW
+	api.PUT("/tasks/:taskId/status", taskHandler.UpdateTaskStatus)
+	api.POST("/tasks/:id/comments", taskHandler.AddComment)
 
 	// Sprint routes
 	api.POST("/projects/:id/sprints", sprintHandler.CreateSprint)
@@ -74,21 +71,19 @@ func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler
 	api.PUT("/sprints/:sprintId", sprintHandler.UpdateSprint)
 	api.DELETE("/sprints/:sprintId", sprintHandler.DeleteSprint)
 	api.POST("/sprints/:sprintId/userstories", userStoryHandler.AssignUserStoryToSprint)
-	api.GET("/sprints/:id/burndown", burndownHandler.GetBurndownChart) // Burndown chart endpoint
+	api.GET("/sprints/:id/burndown", burndownHandler.GetBurndownChart)
 
 	// --- Admin-Only Routes ---
 	admin := e.Group("/api/admin")
 	admin.Use(middleware.JWTAuthMiddleware(jwtSecret))
 	admin.Use(middleware.AdminAuthMiddleware)
 
-	// Admin user management
 	admin.GET("/users", userHandler.GetAllUsers)
 	admin.POST("/users", userHandler.CreateUser)
 	admin.POST("/users/admin", userHandler.CreateAdminUser)
 	admin.PUT("/users/:id", userHandler.UpdateUser)
 	admin.DELETE("/users/:id", userHandler.DeleteUser)
 
-	// Admin project management
 	admin.POST("/projects/:id/members", projectHandler.AddMemberToProject)
 
 	// --- WebSocket Route (No JWT Middleware) ---

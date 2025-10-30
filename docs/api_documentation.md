@@ -1202,6 +1202,82 @@ Updates a rubric.
     }
     ```
 
+### Evaluations
+
+#### POST /api/evaluations
+
+Submits a new evaluation based on a rubric.
+
+-   **Request Body:**
+
+    ```json
+    {
+        "projectId": 1,
+        "sprintId": 1,
+        "rubricId": 1,
+        "evaluatedId": 2,
+        "comments": "Great contribution during the sprint.",
+        "scores": [
+            {
+                "rubricCriterionId": 1,
+                "selectedLevelId": 1
+            },
+            {
+                "rubricCriterionId": 2,
+                "selectedLevelId": 4
+            }
+        ]
+    }
+    ```
+
+-   **Response (201 Created):**
+
+    ```json
+    {
+        "ID": 1,
+        "ProjectID": 1,
+        "SprintID": 1,
+        "RubricID": 1,
+        "EvaluatorID": 1,
+        "EvaluatedID": 2,
+        "Score": 18.5,
+        "Comments": "Great contribution during the sprint.",
+        "CreatedAt": "2023-11-10T14:00:00Z",
+        "Scores": [
+            {
+                "ID": 1,
+                "EvaluationID": 1,
+                "RubricCriterionID": 1,
+                "SelectedLevelID": 1,
+                "Score": 10
+            },
+            {
+                "ID": 2,
+                "EvaluationID": 1,
+                "RubricCriterionID": 2,
+                "SelectedLevelID": 4,
+                "Score": 8.5
+            }
+        ]
+    }
+    ```
+
+#### GET /api/projects/:id/evaluations
+
+Retrieves all evaluations submitted within a specific project.
+
+-   **Path Parameters:**
+    -   `id` (uint): The ID of the project.
+-   **Response (200 OK):** An array of evaluation objects, similar to the response of `POST /api/evaluations`.
+
+#### GET /api/users/:id/evaluations
+
+Retrieves all evaluations a specific user has received across all projects.
+
+-   **Path Parameters:**
+    -   `id` (uint): The ID of the user.
+-   **Response (200 OK):** An array of evaluation objects.
+
 #### DELETE /api/rubrics/:id
 
 Deletes a rubric.

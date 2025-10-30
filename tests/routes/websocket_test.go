@@ -113,7 +113,8 @@ func TestWebSocketBroadcast_OnTaskUpdate(t *testing.T) {
 	}()
 
 	// --- Assertions ---
-	ws.SetReadDeadline(time.Now().Add(5 * time.Second))
+	err = ws.SetReadDeadline(time.Now().Add(5 * time.Second))
+	assert.NoError(t, err)
 	_, message, err := ws.ReadMessage()
 	assert.NoError(t, err, "Failed to read broadcast message from WebSocket")
 

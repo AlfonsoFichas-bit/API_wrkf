@@ -39,20 +39,83 @@ import (
 // @name Authorization
 // @description "Type 'Bearer' followed by a space and the JWT token. Example: 'Bearer {token}"
 
-// createAdminUserIfNeeded comprueba si existe un usuario administrador si no crea uno.
+func main() {
+	hub := websocket.NewHub()
+	go hub.Run()
+
+	cfg := config.LoadConfig()
+
+	db, err := storage.NewConnection(cfg.DB)
+	if err != nil {
+		log.Fatalf("could not connect to database: %v", err)
+	}
+
+	if err := storage.Migrate(db); err != nil {
+		log.Fatalf("could not migrate database: %v", err)
+	}
+
+	// --- Repositories ---
+	userRepo := storage.NewUserRepository(db)
+	projectRepo := storage.NewProjectRepository(db)
+	sprintRepo := storage.NewSprintRepository(db)
+	taskRepo := storage.NewTaskRepository(db)
+	userStoryRepo := storage.NewUserStoryRepository(db)
+	notificationRepo := storage.NewNotificationRepository(db)
+	rubricRepo := storage.NewRubricRepository(db)
+	burndownRepo := storage.NewBurndownRepository(db)
+
+	// --- Services ---
+	notificationService := services.NewNotificationService(notificationRepo)
+	userService := services.NewUserService(userRepo, cfg.JWTSecret)
+	projectService := services.NewProjectService(projectRepo, userRepo, userStoryRepo, sprintRepo, taskRepo, notificationService)
+	sprintService := services.NewSprintService(sprintRepo)
+	taskService := services.NewTaskService(taskRepo, projectService, notificationService, hub)
+	userStoryService := services.NewUserStoryService(userStoryRepo, projectService, sprintService)
+	rubricService := services.NewRubricService(rubricRepo)
+	burndownService := services.NewBurndownService(burndownRepo)
+
+	// --- Handlers ---
+	userHandler := handlers.NewUserHandler(userService)
+	projectHandler := handlers.NewProjectHandler(projectService)
+	sprintHandler := handlers.NewSprintHandler(sprintService)
+	taskHandler := handlers.NewTaskHandler(taskService)
+	userStoryHandler := handlers.NewUserStoryHandler(userStoryService)
+	notificationHandler := handlers.NewNotificationHandler(notificationService)
+	rubricHandler := handlers.NewRubricHandler(rubricService)
+	burndownHandler := handlers.NewBurndownHandler(burndownService)
+	websocketHandler := handlers.NewWebsocketHandler(hub, cfg.JWTSecret)
+
+	// --- Admin User ---
+	createAdminUserIfNeeded(userService, cfg.Admin)
+
+	// --- Echo Setup ---
+	e := echo.New()
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders: []string{"Content-Type", "Authorization", "X-Requested-With"},
+		AllowCredentials: true,
+	})
+	e.Use(echo.WrapMiddleware(c.Handler))
+
+	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, userStoryHandler, taskHandler, notificationHandler, rubricHandler, burndownHandler, websocketHandler, cfg.JWTSecret)
+
+	// --- Start Server ---
+	fmt.Println("Iniciando el servidor en el puerto 8080...")
+	if err := e.Start(":8080"); err != nil {
+		log.Fatalf("No se pudo iniciar el servidor: %v", err)
+	}
+}
+
 func createAdminUserIfNeeded(userService *services.UserService, adminCfg *config.AdminConfig) {
 	_, err := userService.GetUserByEmail(adminCfg.Email)
 	if err == nil {
-		fmt.Println("Usuario administrador ya existe.")
 		return
 	}
-
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
 		log.Printf("Error al checkear admin user: %v", err)
 		return
 	}
-
-	fmt.Println("No se ha encontrado el usuario administrador, creando uno nuevo...")
 	admin := &models.User{
 		Nombre:          adminCfg.Nombre,
 		ApellidoPaterno: "Admin",
@@ -60,114 +123,8 @@ func createAdminUserIfNeeded(userService *services.UserService, adminCfg *config
 		Correo:          adminCfg.Email,
 		Contraseña:      adminCfg.Password,
 	}
-
 	if err := userService.CreateAdminUser(admin); err != nil {
 		log.Fatalf("No se pudo crear el usuario administrador.: %v", err)
 	}
-
 	fmt.Println("Usuario administrador creado correctamente")
-}
-
-func main() {
-	// WebSocket Hub
-	hub := websocket.NewHub()
-	go hub.Run()
-
-	// Cargar configuración de la aplicación
-	cfg := config.LoadConfig()
-
-	// Crear conexión a la db
-	db, err := storage.NewConnection(cfg.DB)
-	if err != nil {
-		log.Fatalf("could not connect to database: %v", err)
-	}
-
-	fmt.Println("Successfully connected to the database!")
-
-	// Ejecutar migraciones de db
-	if err := storage.Migrate(db); err != nil {
-		log.Fatalf("could not migrate database: %v", err)
-	}
-
-	fmt.Println("Database migration completed successfully!")
-
-	// --- Inicializar capas con dependencias ---
-
-	// User components
-	userRepo := storage.NewUserRepository(db)
-	userService := services.NewUserService(userRepo, cfg.JWTSecret)
-	userHandler := handlers.NewUserHandler(userService)
-
-	// Cargar configuración de la aplicación
-	createAdminUserIfNeeded(userService, cfg.Admin)
-
-	// Notification components
-	notificationRepo := storage.NewNotificationRepository(db)
-	notificationService := services.NewNotificationService(notificationRepo)
-	notificationHandler := handlers.NewNotificationHandler(notificationService)
-
-	// Rubric components
-	rubricRepo := storage.NewRubricRepository(db)
-	rubricService := services.NewRubricService(rubricRepo)
-	rubricHandler := handlers.NewRubricHandler(rubricService)
-
-	// Sprint, Task, and UserStory Repositories
-	sprintRepo := storage.NewSprintRepository(db)
-	taskRepo := storage.NewTaskRepository(db)
-	userStoryRepo := storage.NewUserStoryRepository(db)
-
-	// Project Service (now with more dependencies)
-	projectRepo := storage.NewProjectRepository(db)
-	projectService := services.NewProjectService(projectRepo, userRepo, userStoryRepo, sprintRepo, taskRepo, notificationService) // Inyectar notificationService
-	projectHandler := handlers.NewProjectHandler(projectService)
-
-	// Other Services
-	sprintService := services.NewSprintService(sprintRepo)
-	taskService := services.NewTaskService(taskRepo, projectService, notificationService, hub)
-	userStoryService := services.NewUserStoryService(userStoryRepo, projectService, sprintService)
-
-	// Handlers
-	sprintHandler := handlers.NewSprintHandler(sprintService)
-	taskHandler := handlers.NewTaskHandler(taskService)
-	userStoryHandler := handlers.NewUserStoryHandler(userStoryService)
-
-	// Burndown components
-	burndownRepo := storage.NewBurndownRepository(db)
-	burndownService := services.NewBurndownService(burndownRepo)
-	burndownHandler := handlers.NewBurndownHandler(burndownService)
-
-	// Websocket handler
-	websocketHandler := handlers.NewWebsocketHandler(hub, cfg.JWTSecret)
-
-	// --- Inicializar Echo y configurar routes ---
-	e := echo.New()
-	// Configurar CORS
-	c := cors.New(cors.Options{
-		AllowedOrigins: []string{
-			"http://localhost:5173", // URL del frontend en desarrollo
-			"http://localhost:3000", // Si usas otro puerto
-			"http://127.0.0.1:5173",
-		},
-		AllowedMethods: []string{
-			"GET",
-			"POST",
-			"PUT",
-			"DELETE",
-			"OPTIONS",
-		},
-		AllowedHeaders: []string{
-			"Content-Type",
-			"Authorization",
-			"X-Requested-With",
-		},
-		AllowCredentials: true,
-	})
-	e.Use(echo.WrapMiddleware(c.Handler))
-	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, userStoryHandler, taskHandler, notificationHandler, rubricHandler, burndownHandler, websocketHandler, cfg.JWTSecret)
-
-	// --- Iniciar Servidor ---
-	fmt.Println("Iniciando el servidor en el puerto 8080...")
-	if err := e.Start(":8080"); err != nil {
-		log.Fatalf("No se pudo iniciar el servidor: %v", err)
-	}
 }
