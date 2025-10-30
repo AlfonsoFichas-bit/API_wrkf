@@ -35,8 +35,8 @@ func TestLoginEndpoint(t *testing.T) {
 
 	t.Run("Successful Login", func(t *testing.T) {
 		loginCredentials := map[string]string{
-			"correo":     "test@example.com",
-			"contraseña": password,
+			"email":    "test@example.com",
+			"password": password,
 		}
 		jsonBody, _ := json.Marshal(loginCredentials)
 

@@ -12,8 +12,8 @@ import (
 
 // LoginRequest defines the structure for a login request.
 type LoginRequest struct {
-	Correo     string `json:"correo" example:"admin@example.com"`
-	Contraseña string `json:"contraseña" example:"admin123"`
+	Email    string `json:"email" example:"admin@example.com"`
+	Password string `json:"password" example:"admin123"`
 }
 
 type UserHandler struct {
@@ -41,7 +41,7 @@ func (h *UserHandler) Login(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid input"})
 	}
 
-	token, err := h.Service.Login(req.Correo, req.Contraseña)
+	token, err := h.Service.Login(req.Email, req.Password)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": err.Error()})
 	}
