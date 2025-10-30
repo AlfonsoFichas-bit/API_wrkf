@@ -582,6 +582,37 @@ Deletes a sprint.
     -   `sprintId` (uint): The ID of the sprint.
 -   **Response (204 No Content)**
 
+#### GET /api/sprints/:id/burndown
+
+Retrieves the data needed to generate a burndown chart for a specific sprint. The chart shows the ideal rate of completion versus the actual rate of completion of work over time.
+
+-   **Path Parameters:**
+    -   `id` (uint): The ID of the sprint.
+-   **Response (200 OK):**
+
+    ```json
+    {
+        "sprintName": "Sprint 1",
+        "dataPoints": [
+            {
+                "date": "2023-11-01",
+                "idealPoints": 50.0,
+                "actualPoints": 50.0
+            },
+            {
+                "date": "2023-11-02",
+                "idealPoints": 45.0,
+                "actualPoints": 50.0
+            },
+            {
+                "date": "2023-11-03",
+                "idealPoints": 40.0,
+                "actualPoints": 42.0
+            }
+        ]
+    }
+    ```
+
 #### POST /api/sprints/:sprintId/userstories
 
 Assigns a user story to a sprint.

@@ -3,9 +3,9 @@ package routes_test
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"strconv"
 	"testing"
 
 	"github.com/buga/API_wrkf/config"
@@ -70,10 +70,15 @@ func setupTestApp() (*echo.Echo, *gorm.DB) {
 	rubricService := services.NewRubricService(rubricRepo)
 	rubricHandler := handlers.NewRubricHandler(rubricService)
 
-	websocketHandler := handlers.NewWebsocketHandler(hub)
+	// Burndown components (needed for the router signature)
+	burndownRepo := storage.NewBurndownRepository(db)
+	burndownService := services.NewBurndownService(burndownRepo)
+	burndownHandler := handlers.NewBurndownHandler(burndownService)
+
+	websocketHandler := handlers.NewWebsocketHandler(hub, cfg.JWTSecret)
 
 	e := echo.New()
-	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, userStoryHandler, taskHandler, notificationHandler, rubricHandler, websocketHandler, cfg.JWTSecret)
+	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, userStoryHandler, taskHandler, notificationHandler, rubricHandler, burndownHandler, websocketHandler, cfg.JWTSecret)
 
 	return e, db
 }
@@ -108,7 +113,8 @@ func TestLoginEndpoint(t *testing.T) {
 		assert.Equal(t, http.StatusOK, rec.Code)
 
 		var response map[string]string
-		json.Unmarshal(rec.Body.Bytes(), &response)
+		err := json.Unmarshal(rec.Body.Bytes(), &response)
+		assert.NoError(t, err, "Failed to unmarshal response body")
 		assert.Contains(t, response, "token")
 		assert.NotEmpty(t, response["token"])
 	})
@@ -132,13 +138,13 @@ func TestProjectBoardEndpoint(t *testing.T) {
 
 	// --- Test Case ---
 	t.Run("Get Project Board", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, "/api/projects/"+strconv.Itoa(int(project.ID))+"/board", nil)
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/projects/%d/board", project.ID), nil)
 		rec := httptest.NewRecorder()
 
 		c := e.NewContext(req, rec)
 		c.Set("userID", float64(user.ID))
 		c.SetParamNames("id")
-		c.SetParamValues(strconv.Itoa(int(project.ID)))
+		c.SetParamValues(fmt.Sprintf("%d", project.ID))
 
 		handler := handlers.NewProjectHandler(services.NewProjectService(
 			storage.NewProjectRepository(db),
@@ -153,8 +159,8 @@ func TestProjectBoardEndpoint(t *testing.T) {
 			assert.Equal(t, http.StatusOK, rec.Code)
 
 			var response map[string][]models.Task
-			json.Unmarshal(rec.Body.Bytes(), &response)
-
+			err := json.Unmarshal(rec.Body.Bytes(), &response)
+			assert.NoError(t, err, "Failed to unmarshal board response")
 			assert.Len(t, response["todo"], 1)
 			assert.Len(t, response["in_progress"], 1)
 		}

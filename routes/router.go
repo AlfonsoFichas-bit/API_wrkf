@@ -9,7 +9,7 @@ import (
 )
 
 // SetupRoutes configures the application routes.
-func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler *handlers.ProjectHandler, sprintHandler *handlers.SprintHandler, userStoryHandler *handlers.UserStoryHandler, taskHandler *handlers.TaskHandler, notificationHandler *handlers.NotificationHandler, rubricHandler *handlers.RubricHandler, websocketHandler *handlers.WebsocketHandler, jwtSecret string) {
+func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler *handlers.ProjectHandler, sprintHandler *handlers.SprintHandler, userStoryHandler *handlers.UserStoryHandler, taskHandler *handlers.TaskHandler, notificationHandler *handlers.NotificationHandler, rubricHandler *handlers.RubricHandler, burndownHandler *handlers.BurndownHandler, websocketHandler *handlers.WebsocketHandler, jwtSecret string) {
 	// --- Swagger Route ---
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
@@ -74,6 +74,7 @@ func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler
 	api.PUT("/sprints/:sprintId", sprintHandler.UpdateSprint)
 	api.DELETE("/sprints/:sprintId", sprintHandler.DeleteSprint)
 	api.POST("/sprints/:sprintId/userstories", userStoryHandler.AssignUserStoryToSprint)
+	api.GET("/sprints/:id/burndown", burndownHandler.GetBurndownChart) // Burndown chart endpoint
 
 	// --- Admin-Only Routes ---
 	admin := e.Group("/api/admin")
@@ -90,6 +91,6 @@ func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler
 	// Admin project management
 	admin.POST("/projects/:id/members", projectHandler.AddMemberToProject)
 
-	// --- WebSocket Route ---
-	api.GET("/ws/projects/:id/board", websocketHandler.ServeWs)
+	// --- WebSocket Route (No JWT Middleware) ---
+	e.GET("/api/ws/projects/:id/board", websocketHandler.ServeWs)
 }

@@ -27,6 +27,7 @@ type Task struct {
 	ID             uint   `gorm:"primaryKey"`
 	Title          string `gorm:"not null"`
 	Description    string
+	StoryPoints    int       `gorm:"default:1"` // Story points for the task
 	UserStoryID    uint      `gorm:"not null"`
 	UserStory      UserStory `gorm:"foreignKey:UserStoryID"`
 	Status         string    `gorm:"not null;default:'todo'"`

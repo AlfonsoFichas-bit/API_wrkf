@@ -20,4 +20,5 @@ type UserStory struct {
 	AssignedTo         *User     `gorm:"foreignKey:AssignedToID"`
 	CreatedAt          time.Time `gorm:"autoCreateTime"`
 	UpdatedAt          time.Time `gorm:"autoUpdateTime"`
+	Tasks              []Task    `gorm:"foreignKey:UserStoryID"`
 }

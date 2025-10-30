@@ -131,8 +131,13 @@ func main() {
 	taskHandler := handlers.NewTaskHandler(taskService)
 	userStoryHandler := handlers.NewUserStoryHandler(userStoryService)
 
+	// Burndown components
+	burndownRepo := storage.NewBurndownRepository(db)
+	burndownService := services.NewBurndownService(burndownRepo)
+	burndownHandler := handlers.NewBurndownHandler(burndownService)
+
 	// Websocket handler
-	websocketHandler := handlers.NewWebsocketHandler(hub)
+	websocketHandler := handlers.NewWebsocketHandler(hub, cfg.JWTSecret)
 
 	// --- Inicializar Echo y configurar routes ---
 	e := echo.New()
@@ -158,7 +163,7 @@ func main() {
 		AllowCredentials: true,
 	})
 	e.Use(echo.WrapMiddleware(c.Handler))
-	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, userStoryHandler, taskHandler, notificationHandler, rubricHandler, websocketHandler, cfg.JWTSecret)
+	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, userStoryHandler, taskHandler, notificationHandler, rubricHandler, burndownHandler, websocketHandler, cfg.JWTSecret)
 
 	// --- Iniciar Servidor ---
 	fmt.Println("Iniciando el servidor en el puerto 8080...")
