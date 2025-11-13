@@ -158,6 +158,48 @@ func (h *UserStoryHandler) UpdateUserStory(c echo.Context) error {
 	return c.JSON(http.StatusOK, updatedStory)
 }
 
+// UnassignUserStoryFromSprint godoc
+// @Summary      Unassign a User Story from a Sprint
+// @Description  Unassigns a user story from a sprint.
+// @Tags         Sprints
+// @Accept       json
+// @Produce      json
+// @Param        sprintId  path      int  true  "Sprint ID"
+// @Param        storyId   path      int  true  "User Story ID"
+// @Success      200       {object}  models.UserStory
+// @Failure      400       {object}  map[string]string
+// @Failure      403       {object}  map[string]string
+// @Failure      404       {object}  map[string]string
+// @Security     ApiKeyAuth
+// @Router       /api/sprints/{sprintId}/userstories/{storyId} [delete]
+func (h *UserStoryHandler) UnassignUserStoryFromSprint(c echo.Context) error {
+	sprintID, err := strconv.ParseUint(c.Param("sprintId"), 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid sprint ID"})
+	}
+
+	storyID, err := strconv.ParseUint(c.Param("storyId"), 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user story ID"})
+	}
+
+	userID, _ := c.Get("userID").(float64)
+	platformRole, _ := c.Get("userRole").(string)
+
+	updatedStory, err := h.Service.UnassignUserStoryFromSprint(uint(sprintID), uint(storyID), uint(userID), platformRole)
+	if err != nil {
+		if strings.Contains(err.Error(), "forbidden") {
+			return c.JSON(http.StatusForbidden, map[string]string{"error": err.Error()})
+		}
+		if strings.Contains(err.Error(), "not found") {
+			return c.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
+		}
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, updatedStory)
+}
+
 // DeleteUserStory godoc
 // @Summary      Delete a User Story
 // @Description  Deletes an existing user story. Requires admin, product owner, or scrum master role.

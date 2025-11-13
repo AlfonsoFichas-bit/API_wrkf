@@ -73,3 +73,8 @@ func (r *UserStoryRepository) GetUserStoriesBySprintID(sprintID uint) ([]models.
 	err := r.DB.Where("sprint_id = ?", sprintID).Find(&userStories).Error
 	return userStories, err
 }
+
+// UnassignUserStoryFromSprint sets the SprintID of a user story to nil.
+func (r *UserStoryRepository) UnassignUserStoryFromSprint(storyID uint) error {
+	return r.DB.Model(&models.UserStory{}).Where("id = ?", storyID).Update("sprint_id", nil).Error
+}

@@ -372,6 +372,12 @@ Este documento proporciona una lista exhaustiva y detallada de todos los endpoin
   }
   ```
 
+### `DELETE /api/sprints/:sprintId/userstories/:storyId`
+- **Propósito:** Desasignar una historia de usuario de un sprint.
+- **Parámetros de Ruta:**
+    - `:sprintId` (uint): ID del sprint.
+    - `:storyId` (uint): ID de la historia de usuario.
+
 ---
 
 ## 12. Calendario de Eventos

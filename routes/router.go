@@ -87,6 +87,7 @@ func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler
 	api.GET("/sprints/:sprintId/tasks", sprintHandler.GetSprintTasks)
 	api.PUT("/sprints/:sprintId/status", sprintHandler.UpdateSprintStatus)
 	api.POST("/sprints/:sprintId/userstories", userStoryHandler.AssignUserStoryToSprint)
+	api.DELETE("/sprints/:sprintId/userstories/:storyId", userStoryHandler.UnassignUserStoryFromSprint)
 
 	// Event routes
 	api.POST("/projects/:id/events", eventHandler.CreateEvent)

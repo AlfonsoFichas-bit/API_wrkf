@@ -60,6 +60,33 @@ func (s *UserStoryService) GetUserStoryByID(id uint) (*models.UserStory, error) 
 	return userStory, nil
 }
 
+// UnassignUserStoryFromSprint handles unassigning a user story from a sprint.
+func (s *UserStoryService) UnassignUserStoryFromSprint(sprintID, storyID, requestingUserID uint, platformRole string) (*models.UserStory, error) {
+	canUnassign, err := s.checkUserStoryPermissions(storyID, requestingUserID, platformRole)
+	if err != nil {
+		return nil, err
+	}
+	if !canUnassign {
+		return nil, fmt.Errorf("forbidden: you do not have permission to unassign this user story")
+	}
+
+	userStory, err := s.Repo.GetUserStoryByID(storyID)
+	if err != nil {
+		return nil, fmt.Errorf("user story not found")
+	}
+
+	if userStory.SprintID == nil || *userStory.SprintID != sprintID {
+		return nil, fmt.Errorf("user story is not assigned to this sprint")
+	}
+
+	if err := s.Repo.UnassignUserStoryFromSprint(storyID); err != nil {
+		return nil, err
+	}
+
+	// Re-fetch the user story to ensure the change is reflected.
+	return s.Repo.GetUserStoryByID(storyID)
+}
+
 // checkUserStoryPermissions is a helper function to verify if a user can modify a user story.
 func (s *UserStoryService) checkUserStoryPermissions(userStoryID, requestingUserID uint, platformRole string) (bool, error) {
 	if platformRole == string(models.RoleAdmin) {

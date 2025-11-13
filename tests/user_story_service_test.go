@@ -57,4 +57,30 @@ func TestUserStoryService(t *testing.T) {
 		require.NotNil(t, found.SprintID)
 		assert.Equal(t, sprint.ID, *found.SprintID)
 	})
+
+	t.Run("Unassign User Story From Sprint", func(t *testing.T) {
+		us := &models.UserStory{
+			Title:     "Unassignable US",
+			ProjectID: project.ID,
+		}
+		err := userStoryService.CreateUserStory(us, project.ID, creator.ID)
+		require.NoError(t, err)
+
+		sprint := &models.Sprint{
+			Name:      "Another Target Sprint",
+			ProjectID: project.ID,
+		}
+		err = sprintService.CreateSprint(sprint, project.ID, creator.ID)
+		require.NoError(t, err)
+
+		_, err = userStoryService.AssignUserStoryToSprint(sprint.ID, us.ID, creator.ID, "admin")
+		require.NoError(t, err)
+
+		_, err = userStoryService.UnassignUserStoryFromSprint(sprint.ID, us.ID, creator.ID, "admin")
+		require.NoError(t, err)
+
+		found, err := userStoryService.GetUserStoryByID(us.ID)
+		require.NoError(t, err)
+		assert.Nil(t, found.SprintID)
+	})
 }
