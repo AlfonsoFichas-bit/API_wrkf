@@ -1,0 +1,58 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2025-09-22T12:00:00.000Z",
+  "__export_source": "gemini-cli-final",
+  "resources": [
+    {
+      "_id": "wrk_1", "_type": "workspace", "name": "API-wrkf Project Management", "scope": "collection"
+    },
+    {
+      "_id": "env_1", "_type": "environment", "parentId": "wrk_1", "name": "Base Environment",
+      "data": {
+        "baseUrl": "http://localhost:8080"
+      }
+    },
+    {
+      "_id": "grp_auth", "_type": "request_group", "parentId": "wrk_1", "name": "1. Authentication"
+    },
+    {
+      "_id": "req_login", "_type": "request", "parentId": "grp_auth", "name": "Login and Get Admin Token",
+      "url": "{{ _.baseUrl }}/login", "method": "POST",
+      "headers": [
+        {"name": "Content-Type", "value": "application/json"}
+      ],
+      "body": { "mimeType": "application/json", "text": "{\n  \"correo\": \"admin@example.com\",\n  \"contraseña\": \"admin123\"\n}" },
+      "authentication": {}
+    },
+    {
+      "_id": "grp_projects", "_type": "request_group", "parentId": "wrk_1", "name": "2. Projects"
+    },
+    {
+      "_id": "req_create_project", "_type": "request", "parentId": "grp_projects", "name": "Create Project",
+      "url": "{{ _.baseUrl }}/api/projects", "method": "POST",
+      "headers": [
+        {"name": "Content-Type", "value": "application/json"}
+      ],
+      "body": { "mimeType": "application/json", "text": "{\n  \"Name\": \"My Awesome Automated Project\"\n}" },
+      "authentication": { "type": "bearer", "token": "{% response 'body', 'req_login', '$.token', 'never', 60 %}" }
+    },
+    {
+      "_id": "req_get_project_by_id", "_type": "request", "parentId": "grp_projects", "name": "Get Project By ID",
+      "url": "{{ _.baseUrl }}/api/projects/{% response 'body', 'req_create_project', '$.ID', 'never', 60 %}", "method": "GET",
+      "authentication": { "type": "bearer", "token": "{% response 'body', 'req_login', '$.token', 'never', 60 %}" }
+    },
+    {
+      "_id": "grp_user_stories", "_type": "request_group", "parentId": "wrk_1", "name": "3. User Stories"
+    },
+    {
+      "_id": "req_create_user_story", "_type": "request", "parentId": "grp_user_stories", "name": "Create User Story",
+      "url": "{{ _.baseUrl }}/api/projects/{% response 'body', 'req_create_project', '$.ID', 'never', 60 %}/userstories", "method": "POST",
+      "headers": [
+        {"name": "Content-Type", "value": "application/json"}
+      ],
+      "body": { "mimeType": "application/json", "text": "{\n  \"title\": \"Automated User Story\"\n}" },
+      "authentication": { "type": "bearer", "token": "{% response 'body', 'req_login', '$.token', 'never', 60 %}" }
+    }
+  ]
+}

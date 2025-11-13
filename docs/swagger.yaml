@@ -1,0 +1,1024 @@
+basePath: /
+definitions:
+  handlers.AssignStoryRequest:
+    properties:
+      userStoryId:
+        example: 1
+        type: integer
+    type: object
+  handlers.AssignTaskRequest:
+    properties:
+      userId:
+        example: 2
+        type: integer
+    type: object
+  handlers.LoginRequest:
+    properties:
+      contraseña:
+        example: admin123
+        type: string
+      correo:
+        example: admin@example.com
+        type: string
+    type: object
+  handlers.UpdateTaskStatusRequest:
+    properties:
+      status:
+        example: in_progress
+        type: string
+    type: object
+  models.Project:
+    properties:
+      createdAt:
+        type: string
+      createdBy:
+        $ref: '#/definitions/models.User'
+      createdByID:
+        type: integer
+      description:
+        type: string
+      endDate:
+        type: string
+      id:
+        type: integer
+      members:
+        items:
+          $ref: '#/definitions/models.ProjectMember'
+        type: array
+      name:
+        type: string
+      startDate:
+        type: string
+      status:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  models.ProjectMember:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: integer
+      projectID:
+        type: integer
+      role:
+        type: string
+      updatedAt:
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+      userID:
+        type: integer
+    type: object
+  models.Sprint:
+    properties:
+      createdAt:
+        type: string
+      createdBy:
+        $ref: '#/definitions/models.User'
+      createdByID:
+        type: integer
+      endDate:
+        type: string
+      goal:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      project:
+        $ref: '#/definitions/models.Project'
+      projectID:
+        type: integer
+      startDate:
+        type: string
+      status:
+        type: string
+      updatedAt:
+        type: string
+      userStories:
+        description: <-- RELATIONSHIP ADDED
+        items:
+          $ref: '#/definitions/models.UserStory'
+        type: array
+    type: object
+  models.Task:
+    properties:
+      assignedTo:
+        $ref: '#/definitions/models.User'
+      assignedToID:
+        type: integer
+      comments:
+        items:
+          $ref: '#/definitions/models.TaskComment'
+        type: array
+      createdAt:
+        type: string
+      createdBy:
+        $ref: '#/definitions/models.User'
+      createdByID:
+        type: integer
+      description:
+        type: string
+      estimatedHours:
+        format: float32
+        type: number
+      history:
+        items:
+          $ref: '#/definitions/models.TaskHistory'
+        type: array
+      id:
+        type: integer
+      isDeliverable:
+        type: boolean
+      spentHours:
+        format: float32
+        type: number
+      status:
+        type: string
+      title:
+        type: string
+      updatedAt:
+        type: string
+      userStory:
+        $ref: '#/definitions/models.UserStory'
+      userStoryID:
+        type: integer
+    type: object
+  models.TaskComment:
+    properties:
+      author:
+        $ref: '#/definitions/models.User'
+      authorID:
+        type: integer
+      content:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: integer
+      taskID:
+        type: integer
+      updatedAt:
+        type: string
+    type: object
+  models.TaskHistory:
+    properties:
+      changedAt:
+        type: string
+      changedBy:
+        $ref: '#/definitions/models.User'
+      changedByID:
+        type: integer
+      fieldName:
+        description: e.g., "status", "assignedTo"
+        type: string
+      id:
+        type: integer
+      newValue:
+        type: string
+      oldValue:
+        type: string
+      taskID:
+        type: integer
+    type: object
+  models.User:
+    properties:
+      apellidoMaterno:
+        type: string
+      apellidoPaterno:
+        type: string
+      correo:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: integer
+      nombre:
+        type: string
+      role:
+        description: Role defines the user's platform-level role (e.g., 'user' or
+          'admin').
+        type: string
+    type: object
+  models.UserStory:
+    properties:
+      acceptanceCriteria:
+        type: string
+      assignedTo:
+        $ref: '#/definitions/models.User'
+      assignedToID:
+        type: integer
+      createdAt:
+        type: string
+      createdBy:
+        $ref: '#/definitions/models.User'
+      createdByID:
+        type: integer
+      description:
+        type: string
+      id:
+        type: integer
+      points:
+        type: integer
+      priority:
+        type: string
+      project:
+        $ref: '#/definitions/models.Project'
+      projectID:
+        type: integer
+      sprint:
+        allOf:
+        - $ref: '#/definitions/models.Sprint'
+        description: Let GORM infer the relationship via convention
+      sprintID:
+        description: Pointer to allow null values
+        type: integer
+      status:
+        type: string
+      title:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a comprehensive API for a Scrum-based project management platform.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: API-wrkf Project Management API
+  version: "1.0"
+paths:
+  /api/projects:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new project for the authenticated user.
+      parameters:
+      - description: Project details
+        in: body
+        name: project
+        required: true
+        schema:
+          $ref: '#/definitions/models.Project'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Project'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new project
+      tags:
+      - Projects
+  /api/projects/{id}/sprints:
+    get:
+      description: Retrieves a list of all sprints for a specific project.
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Sprint'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get all Sprints for a project
+      tags:
+      - Sprints
+    post:
+      consumes:
+      - application/json
+      description: Creates a new sprint within a specific project.
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Sprint Details (name, goal, startDate, endDate)
+        in: body
+        name: sprint
+        required: true
+        schema:
+          $ref: '#/definitions/models.Sprint'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Sprint'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new Sprint
+      tags:
+      - Sprints
+  /api/projects/{id}/userstories:
+    get:
+      description: Retrieves a list of all user stories (the Product Backlog) for
+        a specific project.
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.UserStory'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get all User Stories for a project
+      tags:
+      - User Stories
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user story within a specific project.
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User Story Details
+        in: body
+        name: userStory
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserStory'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.UserStory'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new User Story
+      tags:
+      - User Stories
+  /api/sprints/{sprintId}:
+    delete:
+      description: Deletes an existing sprint.
+      parameters:
+      - description: Sprint ID
+        in: path
+        name: sprintId
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Delete a Sprint
+      tags:
+      - Sprints
+    get:
+      description: Retrieves details of a single sprint by its ID.
+      parameters:
+      - description: Sprint ID
+        in: path
+        name: sprintId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Sprint'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get a single Sprint
+      tags:
+      - Sprints
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing sprint.
+      parameters:
+      - description: Sprint ID
+        in: path
+        name: sprintId
+        required: true
+        type: integer
+      - description: Updated sprint data
+        in: body
+        name: sprint
+        required: true
+        schema:
+          $ref: '#/definitions/models.Sprint'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Sprint'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Update a Sprint
+      tags:
+      - Sprints
+  /api/sprints/{sprintId}/userstories:
+    post:
+      consumes:
+      - application/json
+      description: Assigns an existing user story to a sprint. Requires admin, product
+        owner, or scrum master role.
+      parameters:
+      - description: Sprint ID
+        in: path
+        name: sprintId
+        required: true
+        type: integer
+      - description: User Story ID to assign
+        in: body
+        name: assignment
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.AssignStoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UserStory'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Assign a User Story to a Sprint
+      tags:
+      - Sprints
+  /api/tasks/{taskId}:
+    delete:
+      description: Deletes an existing task.
+      parameters:
+      - description: Task ID
+        in: path
+        name: taskId
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Delete a Task
+      tags:
+      - Tasks
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing task.
+      parameters:
+      - description: Task ID
+        in: path
+        name: taskId
+        required: true
+        type: integer
+      - description: Updated task data
+        in: body
+        name: task
+        required: true
+        schema:
+          $ref: '#/definitions/models.Task'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Task'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Update a Task
+      tags:
+      - Tasks
+  /api/tasks/{taskId}/assign:
+    put:
+      consumes:
+      - application/json
+      description: Assigns an existing task to a user who is a member of the project.
+      parameters:
+      - description: Task ID
+        in: path
+        name: taskId
+        required: true
+        type: integer
+      - description: User ID to assign the task to
+        in: body
+        name: assignment
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.AssignTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Task'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Assign a Task to a User
+      tags:
+      - Tasks
+  /api/tasks/{taskId}/status:
+    put:
+      consumes:
+      - application/json
+      description: Updates the status of an existing task (e.g., 'todo', 'in_progress',
+        'done').
+      parameters:
+      - description: Task ID
+        in: path
+        name: taskId
+        required: true
+        type: integer
+      - description: New status for the task
+        in: body
+        name: status
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdateTaskStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Task'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Update a Task's Status
+      tags:
+      - Tasks
+  /api/userstories/{storyId}:
+    delete:
+      description: Deletes an existing user story. Requires admin, product owner,
+        or scrum master role.
+      parameters:
+      - description: User Story ID
+        in: path
+        name: storyId
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Delete a User Story
+      tags:
+      - User Stories
+    get:
+      description: Retrieves details of a single user story by its ID, including related
+        project, sprint, and user data.
+      parameters:
+      - description: User Story ID
+        in: path
+        name: storyId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UserStory'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get a single User Story
+      tags:
+      - User Stories
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing user story. Requires admin, product owner,
+        or scrum master role.
+      parameters:
+      - description: User Story ID
+        in: path
+        name: storyId
+        required: true
+        type: integer
+      - description: Fields to update
+        in: body
+        name: updates
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UserStory'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Update a User Story
+      tags:
+      - User Stories
+  /api/userstories/{storyId}/tasks:
+    get:
+      description: Retrieves a list of all tasks for a specific user story.
+      parameters:
+      - description: User Story ID
+        in: path
+        name: storyId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Task'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get all Tasks for a User Story
+      tags:
+      - Tasks
+    post:
+      consumes:
+      - application/json
+      description: Creates a new task within a specific user story.
+      parameters:
+      - description: User Story ID
+        in: path
+        name: storyId
+        required: true
+        type: integer
+      - description: Task Details
+        in: body
+        name: task
+        required: true
+        schema:
+          $ref: '#/definitions/models.Task'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Task'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new Task
+      tags:
+      - Tasks
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a user and returns a JWT token.
+      parameters:
+      - description: User Credentials
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: User Login
+      tags:
+      - Authentication
+securityDefinitions:
+  ApiKeyAuth:
+    description: '"Type ''Bearer'' followed by a space and the JWT token. Example:
+      ''Bearer {token}"'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

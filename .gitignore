@@ -1,0 +1,43 @@
+# IDE and Editor files
+.idea/
+.vscode/
+WorkflowS/
+
+# Environment variables
+.env
+
+# Go build artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+# Executable for the main package (if built in the root directory)
+API_wrkf
+main
+
+# Go module vendor directory
+vendor/
+
+# Test and coverage files
+*.test
+*.out
+*.exe
+
+# Log files
+*.log
+
+# Temporary files
+*~
+#*#
+
+# SQL
+*.sql
+
+# Scripts
+*.fish
+
+# Files
+API-Workflow.postman_collection.json
+
+# Linter configuration
+.golangci.yml
