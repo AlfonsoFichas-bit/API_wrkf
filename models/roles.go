@@ -6,9 +6,8 @@ package models
 type PlatformRole string
 
 const (
-	RoleAdmin   PlatformRole = "admin"
-	RoleUser    PlatformRole = "user"
-	RoleTeacher PlatformRole = "teacher"
+	RoleAdmin PlatformRole = "admin"
+	RoleUser  PlatformRole = "user"
 )
 
 // --- Project Roles ---

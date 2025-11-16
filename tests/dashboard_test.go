@@ -20,15 +20,15 @@ func TestDashboardEndpoints(t *testing.T) {
 	// Create users with different roles
 	student, studentToken := CreateTestUser(t, testApp, "student_dash@test.com", "user")
 	student2, _ := CreateTestUser(t, testApp, "student2_dash@test.com", "user")
-	teacher, teacherToken := CreateTestUser(t, testApp, "teacher_dash@test.com", "teacher")
+	admin, adminToken := CreateTestUser(t, testApp, "admin_dash@test.com", "admin")
 
 	// Create a project and add users
-	project := CreateTestProject(t, testApp, "Dashboard Test Project", teacher.ID)
+	project := CreateTestProject(t, testApp, "Dashboard Test Project", admin.ID)
 
-	// The creator (teacher) is automatically added as a product_owner.
+	// The creator (admin) is automatically added as a product_owner.
 	// We need to find that membership record and update the role to 'docente' for the test.
 	var creatorMember models.ProjectMember
-	err := testApp.DB.Where("project_id = ? AND user_id = ?", project.ID, teacher.ID).First(&creatorMember).Error
+	err := testApp.DB.Where("project_id = ? AND user_id = ?", project.ID, admin.ID).First(&creatorMember).Error
 	require.NoError(t, err)
 	creatorMember.Role = "docente"
 	err = testApp.DB.Save(&creatorMember).Error
@@ -80,9 +80,9 @@ func TestDashboardEndpoints(t *testing.T) {
 		assert.Equal(t, http.StatusForbidden, rec.Code)
 	})
 
-	t.Run("GET /api/evaluations/pending - Teacher can get pending evaluations", func(t *testing.T) {
+	t.Run("GET /api/evaluations/pending - Admin (as Teacher) can get pending evaluations", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/api/evaluations/pending", nil)
-		req.Header.Set("Authorization", "Bearer "+teacherToken)
+		req.Header.Set("Authorization", "Bearer "+adminToken)
 		rec := httptest.NewRecorder()
 		testApp.Router.ServeHTTP(rec, req)
 

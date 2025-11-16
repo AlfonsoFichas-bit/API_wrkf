@@ -31,7 +31,7 @@ func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler
 	// Dashboard routes
 	api.GET("/users/:id/tasks", taskHandler.GetUserTasks)
 	api.GET("/activities/recent", activityHandler.GetRecentActivities)
-	api.GET("/evaluations/pending", evaluationHandler.GetPendingEvaluations, middleware.TeacherAuthMiddleware)
+	api.GET("/evaluations/pending", evaluationHandler.GetPendingEvaluations, middleware.AdminAuthMiddleware)
 	api.GET("/deadlines/upcoming", deadlineHandler.GetUpcomingDeadlines)
 
 
