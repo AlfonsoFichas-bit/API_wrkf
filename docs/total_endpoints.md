@@ -480,6 +480,29 @@ Este documento proporciona una lista exhaustiva y detallada de todos los endpoin
     - `?status=in_progress` (Opcional): Filtrar por estado (`todo`, `in_progress`, `in_review`, `done`).
     - `?limit=50` (Opcional): Limitar el número de resultados.
     - `?offset=0` (Opcional): Para paginación.
+- **Respuesta (200 OK):**
+  ```json
+  {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Implementar autenticación de usuarios",
+        "description": "Crear sistema de login y registro",
+        "status": "in_progress",
+        "priority": "high",
+        "dueDate": "2025-10-30T23:59:59Z",
+        "userStoryId": 5,
+        "userStoryTitle": "Gestión de Sesiones",
+        "projectId": 1,
+        "projectName": "Plataforma de Gestión Académica",
+        "createdAt": "2025-10-20T10:00:00Z",
+        "updatedAt": "2025-10-25T15:30:00Z"
+      }
+    ],
+    "total": 15,
+    "hasMore": true
+  }
+  ```
 
 ### `GET /api/activities/recent`
 - **Propósito:** Obtener un feed de actividades recientes de los proyectos en los que el usuario es miembro.
@@ -488,13 +511,57 @@ Este documento proporciona una lista exhaustiva y detallada de todos los endpoin
     - `?project_id=1` (Opcional): Filtrar actividades por un proyecto específico.
     - `?user_id=5` (Opcional): Filtrar actividades de un usuario específico.
     - `?limit=10` (Opcional): Limitar el número de actividades (default: 10, max: 50).
+- **Respuesta (200 OK):**
+  ```json
+  {
+    "activities": [
+      {
+        "id": 1,
+        "type": "task_completed",
+        "userName": "Sofia Diaz",
+        "userId": 5,
+        "description": "ha completado la tarea 'Crear API endpoints'",
+        "entityType": "task",
+        "entityId": 45,
+        "projectId": 1,
+        "projectName": "Plataforma de Gestión Académica",
+        "timestamp": "2025-10-28T10:30:00Z"
+      }
+    ],
+    "total": 25
+  }
+  ```
 
 ### `GET /api/evaluations/pending`
 - **Propósito:** Obtener las tareas que han sido enviadas y están pendientes de evaluación. Para el dashboard de docentes.
-- **Autorización:** Solo roles de plataforma `admin` o `teacher`.
+- **Autorización:** Solo rol de plataforma `admin`.
 - **Parámetros de Consulta (Query):**
     - `?project_id=1` (Opcional): Filtrar por un proyecto específico.
     - `?limit=20` (Opcional): Limitar el número de resultados.
+- **Respuesta (200 OK):**
+  ```json
+  {
+    "evaluations": [
+      {
+        "taskId": 45,
+        "title": "Entrega Sprint 2",
+        "description": "Implementación de módulos principales",
+        "teamName": "Innovadores",
+        "projectId": 1,
+        "projectName": "Diseño de Interfaz Adaptativa",
+        "submittedAt": "2025-10-26T15:30:00Z",
+        "submittedBy": {
+          "id": 12,
+          "name": "Carlos Mendoza",
+          "email": "carlos@example.com"
+        },
+        "urgency": "high"
+      }
+    ],
+    "total": 8,
+    "urgentCount": 2
+  }
+  ```
 
 ### `GET /api/deadlines/upcoming`
 - **Propósito:** Obtener los próximos vencimientos (fin de sprints, hitos, etc.) relevantes para el usuario.
@@ -503,3 +570,24 @@ Este documento proporciona una lista exhaustiva y detallada de todos los endpoin
     - `?days=30` (Opcional): Días a futuro a considerar (default: 30, max: 90).
     - `?project_id=1` (Opcional): Filtrar por un proyecto específico.
     - `?type=sprint_end` (Opcional): Filtrar por tipo de vencimiento (`sprint_end`, `evaluation_deadline`, etc.).
+- **Respuesta (200 OK):**
+  ```json
+  {
+    "deadlines": [
+      {
+        "id": 1,
+        "title": "Fin Sprint 3",
+        "type": "sprint_end",
+        "projectName": "Diseño de Interfaz Adaptativa",
+        "projectId": 1,
+        "date": "2025-11-28T23:59:59Z",
+        "isUrgent": true,
+        "daysRemaining": 2,
+        "affectedTeams": ["Innovadores", "Alpha Coders"],
+        "description": "Entrega de todas las tareas del Sprint 3"
+      }
+    ],
+    "total": 5,
+    "urgentCount": 1
+  }
+  ```
