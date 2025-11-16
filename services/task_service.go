@@ -13,14 +13,16 @@ type TaskService struct {
 	Repo                *storage.TaskRepository
 	ProjectService      *ProjectService // Dependency to check project membership
 	NotificationService *NotificationService
+	ActivityService     *ActivityService
 }
 
 // NewTaskService creates a new instance of TaskService.
-func NewTaskService(repo *storage.TaskRepository, projectService *ProjectService, notificationService *NotificationService) *TaskService {
+func NewTaskService(repo *storage.TaskRepository, projectService *ProjectService, notificationService *NotificationService, activityService *ActivityService) *TaskService {
 	return &TaskService{
 		Repo:                repo,
 		ProjectService:      projectService,
 		NotificationService: notificationService,
+		ActivityService:     activityService,
 	}
 }
 
@@ -40,7 +42,7 @@ func (s *TaskService) CreateTask(task *models.Task, userStoryID uint, creatorID 
 
 	// If an assignee was specified, assign the task now.
 	if assignedToID != nil && *assignedToID != 0 {
-		return s.AssignTask(task.ID, *assignedToID)
+		return s.AssignTask(task.ID, *assignedToID, creatorID)
 	}
 
 	return s.Repo.GetTaskByID(task.ID)
@@ -70,7 +72,7 @@ func (s *TaskService) DeleteTask(id uint) error {
 }
 
 // AssignTask handles the business logic for assigning a task to a user.
-func (s *TaskService) AssignTask(taskID, assignToUserID uint) (*models.Task, error) {
+func (s *TaskService) AssignTask(taskID, assignToUserID, assignerID uint) (*models.Task, error) {
 	task, err := s.Repo.GetTaskByID(taskID)
 	if err != nil {
 		return nil, fmt.Errorf("task not found")
@@ -104,6 +106,23 @@ func (s *TaskService) AssignTask(taskID, assignToUserID uint) (*models.Task, err
 	}
 	// --- End Notification ---
 
+	// --- Create Activity ---
+	if updatedTask.AssignedTo != nil {
+		projectID, err := s.Repo.GetProjectIDForTask(taskID)
+		if err == nil { // Only create activity if project ID is found
+			description := fmt.Sprintf("ha asignado la tarea '%s' a %s.", updatedTask.Title, updatedTask.AssignedTo.Nombre)
+			s.ActivityService.CreateActivity(
+				"task_assigned",
+				"task",
+				taskID,
+				assignerID,
+				projectID,
+				description,
+			)
+		}
+	}
+	// --- End Activity ---
+
 	return updatedTask, nil
 }
 
@@ -134,7 +153,29 @@ func (s *TaskService) UpdateTaskStatus(taskID uint, newStatus string, updaterID 
 	}
 
 	// 5. Return the updated, hydrated task.
-	return s.Repo.GetTaskByID(taskID)
+	updatedTask, err := s.Repo.GetTaskByID(taskID)
+	if err != nil {
+		return nil, err // Task should exist, but handle error just in case.
+	}
+
+	// --- Create Activity ---
+	if newStatusTyped == models.StatusDone && updatedTask.AssignedToID != nil {
+		projectID, err := s.Repo.GetProjectIDForTask(taskID)
+		if err == nil { // Only create activity if project ID is found
+			description := fmt.Sprintf("ha completado la tarea '%s'", updatedTask.Title)
+			s.ActivityService.CreateActivity(
+				"task_completed",
+				"task",
+				taskID,
+				*updatedTask.AssignedToID, // The user who completed it is the assignee
+				projectID,
+				description,
+			)
+		}
+	}
+	// --- End Activity ---
+
+	return updatedTask, nil
 }
 
 // AddCommentToTask adds a comment to a task and notifies the assignee.
@@ -167,6 +208,21 @@ func (s *TaskService) AddCommentToTask(taskID, authorID uint, content string) (*
 	}
 	// --- End Notification ---
 
+	// --- Create Activity ---
+	projectID, err := s.Repo.GetProjectIDForTask(taskID)
+	if err == nil {
+		description := fmt.Sprintf("ha dejado un comentario en '%s'", task.Title)
+		s.ActivityService.CreateActivity(
+			"comment",
+			"task",
+			taskID,
+			authorID,
+			projectID,
+			description,
+		)
+	}
+	// --- End Activity ---
+
 	return comment, nil
 }
 
@@ -174,4 +230,11 @@ func (s *TaskService) AddCommentToTask(taskID, authorID uint, content string) (*
 func (s *TaskService) GetCommentsByTaskID(taskID uint) ([]models.TaskComment, error) {
 	// Future enhancement: Add permission check here to ensure the user can view the task.
 	return s.Repo.GetCommentsByTaskID(taskID)
+}
+
+// GetTasksByUserID handles the business logic for fetching a user's tasks with filters.
+func (s *TaskService) GetTasksByUserID(userID uint, projectID *uint, status *string, limit, offset int) ([]models.Task, int64, error) {
+	// Business logic can be added here, e.g., validating parameters.
+	// For now, it directly calls the repository.
+	return s.Repo.GetTasksByUserID(userID, projectID, status, limit, offset)
 }

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/buga/API_wrkf/models"
 	"github.com/buga/API_wrkf/services"
@@ -177,19 +178,72 @@ func (h *ProjectHandler) GetUnassignedUsers(c echo.Context) error {
 	return c.JSON(http.StatusOK, users)
 }
 
-// GetProjectMembers handles the HTTP request to retrieve all members of a project.
+// GetProjectMembers handles the HTTP request to retrieve all members of a project with enhanced details.
 func (h *ProjectHandler) GetProjectMembers(c echo.Context) error {
 	projectID, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid project ID"})
 	}
 
-	members, err := h.Service.GetProjectMembers(uint(projectID))
+	members, teams, err := h.Service.GetProjectMembers(uint(projectID))
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not retrieve project members"})
 	}
 
-	return c.JSON(http.StatusOK, members)
+	// Format the response according to the new specification
+	type MemberResponse struct {
+		ID          uint      `json:"id"`
+		Name        string    `json:"name"`
+		Email       string    `json:"email"`
+		Role        string    `json:"role"` // Platform role
+		ProjectRole string    `json:"projectRole"`
+		TeamName    *string   `json:"teamName,omitempty"`
+		TeamID      *uint     `json:"teamId,omitempty"`
+		JoinedAt    time.Time `json:"joinedAt"`
+		IsActive    bool      `json:"isActive"`
+		// Avatar field would be added here if available in the User model
+	}
+
+	memberResponses := make([]MemberResponse, len(members))
+	for i, m := range members {
+		var teamName *string
+		if m.Team != nil {
+			teamName = &m.Team.Name
+		}
+
+		memberResponses[i] = MemberResponse{
+			ID:          m.User.ID,
+			Name:        m.User.Nombre + " " + m.User.ApellidoPaterno,
+			Email:       m.User.Correo,
+			Role:        m.User.Role,
+			ProjectRole: m.Role,
+			TeamName:    teamName,
+			TeamID:      m.TeamID,
+			JoinedAt:    m.CreatedAt,
+			IsActive:    true, // Assuming all returned members are active
+		}
+	}
+
+	type TeamResponse struct {
+		ID          uint   `json:"id"`
+		Name        string `json:"name"`
+		MemberCount int    `json:"memberCount"`
+	}
+
+	teamResponses := make([]TeamResponse, len(teams))
+	for i, t := range teams {
+		teamResponses[i] = TeamResponse{
+			ID:          t.ID,
+			Name:        t.Name,
+			MemberCount: len(t.Members),
+		}
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"members": memberResponses,
+		"total":   len(memberResponses),
+		"teams":   teamResponses,
+	})
 }
 
 // GetActiveSprint godoc

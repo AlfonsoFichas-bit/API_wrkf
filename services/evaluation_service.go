@@ -102,3 +102,39 @@ func (s *EvaluationService) CreateEvaluation(taskID uint, evaluatorID uint, req 
 func (s *EvaluationService) GetEvaluationsByTaskID(taskID uint) ([]models.Evaluation, error) {
 	return s.EvalRepo.GetEvaluationsByTaskID(taskID)
 }
+
+// GetPendingEvaluations retrieves tasks submitted for evaluation for a teacher.
+func (s *EvaluationService) GetPendingEvaluations(teacherID uint, projectID *uint, limit int) ([]models.Task, int64, error) {
+	var projectIDs []uint
+
+	if projectID != nil {
+		// If a specific project is requested, verify the teacher is part of it.
+		role, err := s.ProjectService.GetUserRoleInProject(teacherID, *projectID)
+		if err != nil {
+			return nil, 0, fmt.Errorf("could not verify project membership")
+		}
+		// Assuming 'docente' is the role string for a teacher in a project.
+		if role != "docente" {
+			return nil, 0, fmt.Errorf("user is not a teacher in the requested project")
+		}
+		projectIDs = append(projectIDs, *projectID)
+	} else {
+		// Get all projects where the user is a teacher.
+		allProjects, err := s.ProjectService.GetProjectsByUserID(teacherID)
+		if err != nil {
+			return nil, 0, fmt.Errorf("could not retrieve user's projects")
+		}
+		for _, p := range allProjects {
+			role, err := s.ProjectService.GetUserRoleInProject(teacherID, p.ID)
+			if err == nil && role == "docente" {
+				projectIDs = append(projectIDs, p.ID)
+			}
+		}
+	}
+
+	if len(projectIDs) == 0 {
+		return []models.Task{}, 0, nil // No projects for this teacher, so no pending evaluations.
+	}
+
+	return s.TaskRepo.GetPendingEvaluations(projectIDs, limit)
+}

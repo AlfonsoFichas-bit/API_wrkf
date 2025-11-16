@@ -30,6 +30,9 @@ type TestApp struct {
 	EvaluationService   *services.EvaluationService
 	EventService        *services.EventService
 	ExportService       *services.ExportService
+	ActivityService     *services.ActivityService
+	DeadlineService     *services.DeadlineService
+	TeamService         *services.TeamService
 }
 
 // SetupTestApp initializes a full application stack for integration testing.
@@ -55,18 +58,24 @@ func SetupTestApp() *TestApp {
 	reportingRepo := storage.NewReportingRepository(db)
 	evalRepo := storage.NewEvaluationRepository(db)
 	eventRepo := storage.NewEventRepository(db)
+	activityRepo := storage.NewActivityRepository(db)
+	deadlineRepo := storage.NewDeadlineRepository(db)
+	teamRepo := storage.NewTeamRepository(db)
 
 	userService := services.NewUserService(userRepo, cfg.JWTSecret)
 	notificationService := services.NewNotificationService(notificationRepo)
-	projectService := services.NewProjectService(projectRepo, userRepo, userStoryRepo, sprintRepo, taskRepo, notificationService)
-	sprintService := services.NewSprintService(sprintRepo)
-	taskService := services.NewTaskService(taskRepo, projectService, notificationService)
-	userStoryService := services.NewUserStoryService(userStoryRepo, projectService, sprintService)
-	rubricService := services.NewRubricService(rubricRepo)
+	teamService := services.NewTeamService(teamRepo)
+	projectService := services.NewProjectService(projectRepo, userRepo, userStoryRepo, sprintRepo, taskRepo, notificationService, teamService)
 	reportingService := services.NewReportingService(reportingRepo, userStoryRepo, sprintRepo)
+	activityService := services.NewActivityService(activityRepo, projectService)
+	sprintService := services.NewSprintService(sprintRepo, reportingService, activityService)
+	taskService := services.NewTaskService(taskRepo, projectService, notificationService, activityService)
+	userStoryService := services.NewUserStoryService(userStoryRepo, projectService, sprintService, activityService)
+	rubricService := services.NewRubricService(rubricRepo)
 	evaluationService := services.NewEvaluationService(evalRepo, taskRepo, rubricRepo, projectService)
 	eventService := services.NewEventService(eventRepo, projectService)
-	exportService := services.NewExportService(projectRepo, userStoryRepo, taskRepo) // <-- NEW
+	exportService := services.NewExportService(projectRepo, userStoryRepo, taskRepo)
+	deadlineService := services.NewDeadlineService(deadlineRepo, projectService)
 
 	// WebSocket Manager
 	wsManager := websocket.NewWebSocketManager()
@@ -80,13 +89,15 @@ func SetupTestApp() *TestApp {
 	notificationHandler := handlers.NewNotificationHandler(notificationService)
 	rubricHandler := handlers.NewRubricHandler(rubricService)
 	reportingHandler := handlers.NewReportingHandler(reportingService)
-	evaluationHandler := handlers.NewEvaluationHandler(evaluationService)
+	evaluationHandler := handlers.NewEvaluationHandler(evaluationService, projectRepo)
 	eventHandler := handlers.NewEventHandler(eventService)
-	exportHandler := handlers.NewExportHandler(exportService) // <-- NEW
+	exportHandler := handlers.NewExportHandler(exportService)
+	activityHandler := handlers.NewActivityHandler(activityService)
+	deadlineHandler := handlers.NewDeadlineHandler(deadlineService, teamService)
 	webSocketHandler := websocket.NewWebSocketHandler(wsManager, cfg.JWTSecret, userService, projectService)
 
 	router := echo.New()
-	routes.SetupRoutes(router, userHandler, projectHandler, sprintHandler, userStoryHandler, taskHandler, notificationHandler, rubricHandler, reportingHandler, evaluationHandler, eventHandler, exportHandler, cfg.JWTSecret)
+	routes.SetupRoutes(router, userHandler, projectHandler, sprintHandler, userStoryHandler, taskHandler, notificationHandler, rubricHandler, reportingHandler, evaluationHandler, eventHandler, exportHandler, activityHandler, deadlineHandler, cfg.JWTSecret)
 	router.GET("/ws", webSocketHandler.HandleConnection)
 
 	return &TestApp{
@@ -101,7 +112,10 @@ func SetupTestApp() *TestApp {
 		RubricService:       rubricService,
 		EvaluationService:   evaluationService,
 		EventService:        eventService,
-		ExportService:       exportService, // <-- NEW
+		ExportService:       exportService,
+		ActivityService:     activityService,
+		DeadlineService:     deadlineService,
+		TeamService:         teamService,
 	}
 }
 
@@ -133,6 +147,14 @@ func CreateTestProject(t *testing.T, app *TestApp, name string, creatorID uint) 
 		CreatedByID: creatorID,
 	}
 	err := app.DB.Create(project).Error
+	require.NoError(t, err)
+	// Manually add creator as product_owner, bypassing service logic for tests
+	member := &models.ProjectMember{
+		ProjectID: project.ID,
+		UserID:    creatorID,
+		Role:      "product_owner",
+	}
+	err = app.DB.Create(member).Error
 	require.NoError(t, err)
 	return project
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/buga/API_wrkf/models"
 	"github.com/buga/API_wrkf/services"
@@ -238,7 +239,7 @@ func (h *TaskHandler) AssignTask(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid user ID"})
 	}
 
-	assignedTask, err := h.Service.AssignTask(uint(taskId), req.UserID)
+	assignedTask, err := h.Service.AssignTask(uint(taskId), req.UserID, assignerID)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
@@ -356,4 +357,96 @@ func (h *TaskHandler) GetCommentsByTaskID(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, comments)
+}
+
+// GetUserTasks retrieves tasks for a specific user with optional filters.
+func (h *TaskHandler) GetUserTasks(c echo.Context) error {
+	// 1. Get user ID from URL
+	targetUserID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user ID"})
+	}
+
+	// 2. Authorization check
+	requestingUserID, err := utils.GetUserIDFromContext(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
+	}
+	userRole, _ := utils.GetUserRoleFromContext(c)
+
+	if userRole != "admin" && requestingUserID != uint(targetUserID) {
+		return c.JSON(http.StatusForbidden, map[string]string{"error": "Forbidden: You can only view your own tasks"})
+	}
+
+	// 3. Parse query parameters
+	projectIDStr := c.QueryParam("project_id")
+	var projectID *uint
+	if projectIDStr != "" {
+		pid, err := strconv.ParseUint(projectIDStr, 10, 32)
+		if err == nil {
+			p := uint(pid)
+			projectID = &p
+		}
+	}
+
+	statusStr := c.QueryParam("status")
+	var status *string
+	if statusStr != "" {
+		status = &statusStr
+	}
+
+	limit, _ := strconv.Atoi(c.QueryParam("limit"))
+	if limit <= 0 {
+		limit = 50 // Default limit
+	}
+	offset, _ := strconv.Atoi(c.QueryParam("offset"))
+	if offset < 0 {
+		offset = 0
+	}
+
+	// 4. Call the service
+	tasks, total, err := h.Service.GetTasksByUserID(uint(targetUserID), projectID, status, limit, offset)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not retrieve tasks"})
+	}
+
+	// 5. Format the response
+	type TaskResponse struct {
+		ID             uint       `json:"id"`
+		Title          string     `json:"title"`
+		Description    string     `json:"description"`
+		Status         string     `json:"status"`
+		Priority       string     `json:"priority"`
+		DueDate        *time.Time `json:"dueDate"`
+		UserStoryID    uint       `json:"userStoryId"`
+		UserStoryTitle string     `json:"userStoryTitle"`
+		ProjectID      uint       `json:"projectId"`
+		ProjectName    string     `json:"projectName"`
+		CreatedAt      string     `json:"createdAt"`
+		UpdatedAt      string     `json:"updatedAt"`
+	}
+
+	taskResponses := make([]TaskResponse, len(tasks))
+	for i, task := range tasks {
+		taskResponses[i] = TaskResponse{
+			ID:             task.ID,
+			Title:          task.Title,
+			Description:    task.Description,
+			Status:         string(task.Status),
+			Priority:       task.Priority,
+			DueDate:        task.DueDate,
+			UserStoryID:    task.UserStoryID,
+			UserStoryTitle: task.UserStory.Title,
+			ProjectID:      task.UserStory.ProjectID,
+			ProjectName:    task.UserStory.Project.Name,
+			CreatedAt:      task.CreatedAt.Format(time.RFC3339),
+			UpdatedAt:      task.UpdatedAt.Format(time.RFC3339),
+		}
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"tasks":   taskResponses,
+		"total":   total,
+		"hasMore": total > int64(offset+len(tasks)),
+	})
 }

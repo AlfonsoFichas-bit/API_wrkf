@@ -15,3 +15,12 @@ func GetUserIDFromContext(c echo.Context) (uint, error) {
 
 	return uint(userID), nil
 }
+
+// GetUserRoleFromContext extracts the user role from the JWT token in the Echo context.
+func GetUserRoleFromContext(c echo.Context) (string, error) {
+	userRole, ok := c.Get("userRole").(string)
+	if !ok {
+		return "", errors.New("invalid or missing user role in context")
+	}
+	return userRole, nil
+}

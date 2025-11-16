@@ -131,3 +131,63 @@ func (r *TaskRepository) UpdateTaskWithHistory(task *models.Task, oldStatus, new
 		return nil
 	})
 }
+
+// GetTasksByUserID retrieves tasks for a user with optional filters.
+func (r *TaskRepository) GetTasksByUserID(userID uint, projectID *uint, status *string, limit, offset int) ([]models.Task, int64, error) {
+	var tasks []models.Task
+	var total int64
+
+	query := r.DB.Model(&models.Task{}).
+		Joins("JOIN user_stories ON user_stories.id = tasks.user_story_id").
+		Where("tasks.assigned_to_id = ?", userID)
+
+	if projectID != nil {
+		query = query.Where("user_stories.project_id = ?", *projectID)
+	}
+
+	if status != nil && *status != "" {
+		query = query.Where("tasks.status = ?", *status)
+	}
+
+	// Count total records for pagination
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// Apply limit, offset, and ordering
+	err := query.
+		Preload("UserStory").
+		Preload("UserStory.Project").
+		Order("tasks.due_date ASC").
+		Order("CASE tasks.priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 WHEN 'low' THEN 3 ELSE 4 END").
+		Limit(limit).
+		Offset(offset).
+		Find(&tasks).Error
+
+	return tasks, total, err
+}
+
+// GetPendingEvaluations retrieves tasks submitted for evaluation for specific projects.
+func (r *TaskRepository) GetPendingEvaluations(projectIDs []uint, limit int) ([]models.Task, int64, error) {
+	var tasks []models.Task
+	var total int64
+
+	query := r.DB.Model(&models.Task{}).
+		Joins("JOIN user_stories ON user_stories.id = tasks.user_story_id").
+		Where("tasks.submitted_for_evaluation = ?", true).
+		Where("user_stories.project_id IN ?", projectIDs)
+
+	// Count total records for pagination
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	err := query.
+		Preload("SubmittedBy").
+		Preload("UserStory.Project").
+		Order("tasks.submitted_at ASC").
+		Limit(limit).
+		Find(&tasks).Error
+
+	return tasks, total, err
+}

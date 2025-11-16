@@ -59,5 +59,8 @@ func Migrate(db *gorm.DB) error {
 		&models.UserMetric{},
 		&models.Notification{},
 		&models.Event{},
+		&models.Activity{},
+		&models.Deadline{},
+		&models.Team{},
 	)
 }

@@ -18,10 +18,11 @@ type ProjectService struct {
 	SprintRepo          *storage.SprintRepository
 	TaskRepo            *storage.TaskRepository
 	NotificationService *NotificationService // Injected
+	TeamService         *TeamService
 }
 
 // NewProjectService creates a new instance of ProjectService.
-func NewProjectService(repo *storage.ProjectRepository, userRepo *storage.UserRepository, userStoryRepo *storage.UserStoryRepository, sprintRepo *storage.SprintRepository, taskRepo *storage.TaskRepository, notificationService *NotificationService) *ProjectService {
+func NewProjectService(repo *storage.ProjectRepository, userRepo *storage.UserRepository, userStoryRepo *storage.UserStoryRepository, sprintRepo *storage.SprintRepository, taskRepo *storage.TaskRepository, notificationService *NotificationService, teamService *TeamService) *ProjectService {
 	return &ProjectService{
 		Repo:                repo,
 		UserRepo:            userRepo,
@@ -29,6 +30,7 @@ func NewProjectService(repo *storage.ProjectRepository, userRepo *storage.UserRe
 		SprintRepo:          sprintRepo,
 		TaskRepo:            taskRepo,
 		NotificationService: notificationService,
+		TeamService:         teamService,
 	}
 }
 
@@ -119,9 +121,24 @@ func (s *ProjectService) GetProjectByID(id uint) (*models.Project, error) {
 	return s.Repo.GetProjectByID(id)
 }
 
-// GetProjectMembers retrieves all members for a specific project.
-func (s *ProjectService) GetProjectMembers(projectID uint) ([]models.ProjectMember, error) {
-	return s.Repo.GetProjectMembers(projectID)
+// GetProjectMembers retrieves all members and teams for a specific project.
+func (s *ProjectService) GetProjectMembers(projectID uint) ([]models.ProjectMember, []models.Team, error) {
+	members, err := s.Repo.GetProjectMembers(projectID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	teams, err := s.TeamService.GetTeamsByProjectID(projectID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return members, teams, nil
+}
+
+// IsUserMemberOfProject checks if a user is a member of a given project.
+func (s *ProjectService) IsUserMemberOfProject(userID, projectID uint) (bool, error) {
+	return s.Repo.IsMember(projectID, userID)
 }
 
 // UpdateProject handles the business logic for updating a project, including permission checks.

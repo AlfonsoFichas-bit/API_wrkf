@@ -108,3 +108,36 @@ func (r *SprintRepository) GetActiveSprint(projectID uint) (*models.Sprint, erro
 	}
 	return &sprint, nil
 }
+
+// TaskStats holds the count of tasks for a given status.
+type TaskStats struct {
+	SprintID uint
+	Status   models.TaskStatus
+	Count    int
+}
+
+// GetTaskCountsForSprints retrieves the count of tasks grouped by status for a list of sprint IDs.
+func (r *SprintRepository) GetTaskCountsForSprints(sprintIDs []uint) (map[uint]map[models.TaskStatus]int, error) {
+	var stats []TaskStats
+	err := r.DB.Table("tasks").
+		Select("user_stories.sprint_id, tasks.status, COUNT(tasks.id) as count").
+		Joins("JOIN user_stories ON tasks.user_story_id = user_stories.id").
+		Where("user_stories.sprint_id IN ?", sprintIDs).
+		Group("user_stories.sprint_id, tasks.status").
+		Scan(&stats).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Process the flat results into a nested map
+	result := make(map[uint]map[models.TaskStatus]int)
+	for _, stat := range stats {
+		if _, ok := result[stat.SprintID]; !ok {
+			result[stat.SprintID] = make(map[models.TaskStatus]int)
+		}
+		result[stat.SprintID][stat.Status] = stat.Count
+	}
+
+	return result, nil
+}

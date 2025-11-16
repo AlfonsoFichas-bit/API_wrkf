@@ -21,6 +21,8 @@ type ProjectMember struct {
 	UserID    uint      `gorm:"not null"`
 	User      User      `gorm:"foreignKey:UserID"`
 	ProjectID uint      `gorm:"not null"`
+	TeamID    *uint     `json:"teamId"`
+	Team      *Team     `gorm:"foreignKey:TeamID" json:"team,omitempty"`
 	Role      string    `gorm:"not null"`
 	CreatedAt time.Time `gorm:"autoCreateTime"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime"`

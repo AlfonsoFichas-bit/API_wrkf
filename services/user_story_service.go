@@ -9,17 +9,19 @@ import (
 
 // UserStoryService handles the business logic for user stories.
 type UserStoryService struct {
-	Repo           *storage.UserStoryRepository
-	ProjectService *ProjectService // Dependency to check project-level roles
-	SprintService  *SprintService  // Dependency to check sprint details
+	Repo            *storage.UserStoryRepository
+	ProjectService  *ProjectService // Dependency to check project-level roles
+	SprintService   *SprintService  // Dependency to check sprint details
+	ActivityService *ActivityService
 }
 
 // NewUserStoryService creates a new instance of UserStoryService.
-func NewUserStoryService(repo *storage.UserStoryRepository, projectService *ProjectService, sprintService *SprintService) *UserStoryService {
+func NewUserStoryService(repo *storage.UserStoryRepository, projectService *ProjectService, sprintService *SprintService, activityService *ActivityService) *UserStoryService {
 	return &UserStoryService{
-		Repo:           repo,
-		ProjectService: projectService,
-		SprintService:  sprintService,
+		Repo:            repo,
+		ProjectService:  projectService,
+		SprintService:   sprintService,
+		ActivityService: activityService,
 	}
 }
 
@@ -30,7 +32,24 @@ func (s *UserStoryService) CreateUserStory(userStory *models.UserStory, projectI
 	}
 	userStory.ProjectID = projectID
 	userStory.CreatedByID = creatorID
-	return s.Repo.CreateUserStory(userStory)
+	err := s.Repo.CreateUserStory(userStory)
+	if err != nil {
+		return err
+	}
+
+	// --- Create Activity ---
+	description := fmt.Sprintf("ha creado la historia de usuario '%s'", userStory.Title)
+	s.ActivityService.CreateActivity(
+		"user_story_created",
+		"user_story",
+		userStory.ID,
+		creatorID,
+		projectID,
+		description,
+	)
+	// --- End Activity ---
+
+	return nil
 }
 
 // GetUserStoriesByProjectID retrieves all user stories for a specific project.

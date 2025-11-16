@@ -55,12 +55,12 @@ func (h *SprintHandler) CreateSprint(c echo.Context) error {
 }
 
 // GetSprintsByProjectID godoc
-// @Summary      Get all Sprints for a project
-// @Description  Retrieves a list of all sprints for a specific project.
+// @Summary      Get all Sprints for a project with stats
+// @Description  Retrieves a list of all sprints for a specific project, including progress statistics.
 // @Tags         Sprints
 // @Produce      json
 // @Param        id   path      int  true  "Project ID"
-// @Success      200  {array}   models.Sprint
+// @Success      200  {object}  map[string]interface{}
 // @Failure      400  {object}  map[string]string
 // @Failure      401  {object}  map[string]string
 // @Security     ApiKeyAuth
@@ -71,12 +71,37 @@ func (h *SprintHandler) GetSprintsByProjectID(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid project ID"})
 	}
 
-	sprints, err := h.Service.GetSprintsByProjectID(uint(projectID))
+	sprintsWithStats, activeSprint, err := h.Service.GetSprintsByProjectID(uint(projectID))
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not retrieve sprints"})
 	}
 
-	return c.JSON(http.StatusOK, sprints)
+	// Burndown data and other complex stats could be added here if needed
+	// For now, the service layer provides the main stats.
+
+	var activeSprintResponse struct {
+		ID       uint    `json:"id"`
+		Name     string  `json:"name"`
+		Progress float64 `json:"progress"`
+	}
+
+	if activeSprint != nil {
+		for _, s := range sprintsWithStats {
+			if s.ID == activeSprint.ID {
+				activeSprintResponse.ID = s.ID
+				activeSprintResponse.Name = s.Name
+				activeSprintResponse.Progress = s.Progress
+				break
+			}
+		}
+	}
+
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"sprints":      sprintsWithStats,
+		"total":        len(sprintsWithStats),
+		"activeSprint": activeSprintResponse,
+	})
 }
 
 // GetSprintByID godoc

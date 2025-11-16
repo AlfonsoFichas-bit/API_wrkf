@@ -39,10 +39,10 @@ func (r *ProjectRepository) GetProjectByID(id uint) (*models.Project, error) {
 	return &project, err
 }
 
-// GetProjectMembers retrieves all members for a given project, preloading user details.
+// GetProjectMembers retrieves all members for a given project, preloading user and team details.
 func (r *ProjectRepository) GetProjectMembers(projectID uint) ([]models.ProjectMember, error) {
 	var members []models.ProjectMember
-	err := r.DB.Preload("User").Where("project_id = ?", projectID).Find(&members).Error
+	err := r.DB.Preload("User").Preload("Team").Where("project_id = ?", projectID).Find(&members).Error
 	return members, err
 }
 
@@ -103,4 +103,11 @@ func (r *ProjectRepository) GetProjectsByUserID(userID uint) ([]models.Project, 
 		Preload("CreatedBy").
 		Find(&projects).Error
 	return projects, err
+}
+
+// GetProjectMemberByUserID retrieves a project member record by user and project IDs.
+func (r *ProjectRepository) GetProjectMemberByUserID(userID, projectID uint) (*models.ProjectMember, error) {
+	var member models.ProjectMember
+	err := r.DB.Preload("Team").Where("user_id = ? AND project_id = ?", userID, projectID).First(&member).Error
+	return &member, err
 }

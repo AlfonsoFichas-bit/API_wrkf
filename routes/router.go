@@ -9,7 +9,7 @@ import (
 )
 
 // SetupRoutes configures the application routes.
-func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler *handlers.ProjectHandler, sprintHandler *handlers.SprintHandler, userStoryHandler *handlers.UserStoryHandler, taskHandler *handlers.TaskHandler, notificationHandler *handlers.NotificationHandler, rubricHandler *handlers.RubricHandler, reportingHandler *handlers.ReportingHandler, evaluationHandler *handlers.EvaluationHandler, eventHandler *handlers.EventHandler, exportHandler *handlers.ExportHandler, jwtSecret string) {
+func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler *handlers.ProjectHandler, sprintHandler *handlers.SprintHandler, userStoryHandler *handlers.UserStoryHandler, taskHandler *handlers.TaskHandler, notificationHandler *handlers.NotificationHandler, rubricHandler *handlers.RubricHandler, reportingHandler *handlers.ReportingHandler, evaluationHandler *handlers.EvaluationHandler, eventHandler *handlers.EventHandler, exportHandler *handlers.ExportHandler, activityHandler *handlers.ActivityHandler, deadlineHandler *handlers.DeadlineHandler, jwtSecret string) {
 	// --- Swagger Route ---
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
@@ -27,6 +27,13 @@ func SetupRoutes(e *echo.Echo, userHandler *handlers.UserHandler, projectHandler
 	// User routes
 	api.GET("/me", userHandler.GetCurrentUser)
 	api.GET("/users/:id", userHandler.GetUser)
+
+	// Dashboard routes
+	api.GET("/users/:id/tasks", taskHandler.GetUserTasks)
+	api.GET("/activities/recent", activityHandler.GetRecentActivities)
+	api.GET("/evaluations/pending", evaluationHandler.GetPendingEvaluations, middleware.TeacherAuthMiddleware)
+	api.GET("/deadlines/upcoming", deadlineHandler.GetUpcomingDeadlines)
+
 
 	// Notification routes
 	api.GET("/notifications", notificationHandler.GetUserNotifications)

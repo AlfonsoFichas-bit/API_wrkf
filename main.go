@@ -100,19 +100,25 @@ func main() {
 	reportingRepo := storage.NewReportingRepository(db)
 	evalRepo := storage.NewEvaluationRepository(db)
 	eventRepo := storage.NewEventRepository(db)
+	activityRepo := storage.NewActivityRepository(db)
+	deadlineRepo := storage.NewDeadlineRepository(db)
+	teamRepo := storage.NewTeamRepository(db) // New
 
 	// Services
 	userService := services.NewUserService(userRepo, cfg.JWTSecret)
 	notificationService := services.NewNotificationService(notificationRepo)
-	projectService := services.NewProjectService(projectRepo, userRepo, userStoryRepo, sprintRepo, taskRepo, notificationService)
-	sprintService := services.NewSprintService(sprintRepo)
-	taskService := services.NewTaskService(taskRepo, projectService, notificationService)
-	userStoryService := services.NewUserStoryService(userStoryRepo, projectService, sprintService)
-	rubricService := services.NewRubricService(rubricRepo)
+	teamService := services.NewTeamService(teamRepo) // New
+	projectService := services.NewProjectService(projectRepo, userRepo, userStoryRepo, sprintRepo, taskRepo, notificationService, teamService) // Updated
 	reportingService := services.NewReportingService(reportingRepo, userStoryRepo, sprintRepo)
+	activityService := services.NewActivityService(activityRepo, projectService)
+	sprintService := services.NewSprintService(sprintRepo, reportingService, activityService) // Updated
+	taskService := services.NewTaskService(taskRepo, projectService, notificationService, activityService)
+	userStoryService := services.NewUserStoryService(userStoryRepo, projectService, sprintService, activityService) // Updated
+	rubricService := services.NewRubricService(rubricRepo)
 	evaluationService := services.NewEvaluationService(evalRepo, taskRepo, rubricRepo, projectService)
 	eventService := services.NewEventService(eventRepo, projectService)
-	exportService := services.NewExportService(projectRepo, userStoryRepo, taskRepo) // <-- NEW
+	exportService := services.NewExportService(projectRepo, userStoryRepo, taskRepo)
+	deadlineService := services.NewDeadlineService(deadlineRepo, projectService) // New
 
 	// WebSocket Manager (initialized before handlers that need it)
 	wsManager := websocket.NewWebSocketManager()
@@ -126,9 +132,11 @@ func main() {
 	userStoryHandler := handlers.NewUserStoryHandler(userStoryService)
 	rubricHandler := handlers.NewRubricHandler(rubricService)
 	reportingHandler := handlers.NewReportingHandler(reportingService)
-	evaluationHandler := handlers.NewEvaluationHandler(evaluationService)
+	evaluationHandler := handlers.NewEvaluationHandler(evaluationService, projectRepo)
 	eventHandler := handlers.NewEventHandler(eventService)
-	exportHandler := handlers.NewExportHandler(exportService) // <-- NEW
+	exportHandler := handlers.NewExportHandler(exportService)
+	activityHandler := handlers.NewActivityHandler(activityService)
+	deadlineHandler := handlers.NewDeadlineHandler(deadlineService, teamService) // Updated
 	taskHandler := handlers.NewTaskHandler(taskService, wsManager, userService)
 	webSocketHandler := websocket.NewWebSocketHandler(wsManager, cfg.JWTSecret, userService, projectService)
 
@@ -165,7 +173,7 @@ func main() {
 	// WebSocket route
 	e.GET("/ws", webSocketHandler.HandleConnection)
 
-	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, userStoryHandler, taskHandler, notificationHandler, rubricHandler, reportingHandler, evaluationHandler, eventHandler, exportHandler, cfg.JWTSecret)
+	routes.SetupRoutes(e, userHandler, projectHandler, sprintHandler, userStoryHandler, taskHandler, notificationHandler, rubricHandler, reportingHandler, evaluationHandler, eventHandler, exportHandler, activityHandler, deadlineHandler, cfg.JWTSecret)
 
 	// --- Iniciar Servidor ---
 	fmt.Println("Iniciando el servidor en el puerto 8080...")

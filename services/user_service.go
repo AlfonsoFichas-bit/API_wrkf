@@ -161,13 +161,18 @@ func (s *UserService) Login(email, password string) (string, error) {
 	return tokenString, nil
 }
 
-// GenerateJWT generates a JWT token for a given user ID.
+// GenerateJWT generates a JWT token for a given user ID, including their role.
 func (s *UserService) GenerateJWT(userID uint) (string, error) {
-	// For testing purposes, we might not need to fetch the full user,
-	// but a real scenario might include user roles or other claims.
-	// Here, we'll just use the userID.
+	// Fetch the user to get their role
+	user, err := s.Repo.GetUserByID(userID)
+	if err != nil {
+		return "", err
+	}
+
 	claims := jwt.MapClaims{
-		"sub": userID,
+		"sub": user.ID,
+		"nam": user.Nombre,
+		"rol": user.Role, // Add the user's role to the token claims
 		"exp": time.Now().Add(time.Hour * 72).Unix(),
 		"iat": time.Now().Unix(),
 	}
