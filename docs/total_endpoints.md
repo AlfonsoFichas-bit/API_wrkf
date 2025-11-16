@@ -465,3 +465,41 @@ Este documento proporciona una lista exhaustiva y detallada de todos los endpoin
 - **Respuesta (200 OK):**
     - El cuerpo de la respuesta es el contenido del archivo CSV.
     - Las cabeceras `Content-Type` y `Content-Disposition` están configuradas para forzar la descarga del archivo en el navegador.
+
+---
+
+## 15. Endpoints de Dashboard
+
+### `GET /api/users/:id/tasks`
+- **Propósito:** Obtener las tareas asignadas a un usuario específico. Principalmente para el dashboard de estudiantes.
+- **Autorización:** Solo el usuario puede ver sus propias tareas (o un administrador).
+- **Parámetros de Ruta:**
+    - `:id` (uint): ID del usuario.
+- **Parámetros de Consulta (Query):**
+    - `?project_id=1` (Opcional): Filtrar tareas por un proyecto específico.
+    - `?status=in_progress` (Opcional): Filtrar por estado (`todo`, `in_progress`, `in_review`, `done`).
+    - `?limit=50` (Opcional): Limitar el número de resultados.
+    - `?offset=0` (Opcional): Para paginación.
+
+### `GET /api/activities/recent`
+- **Propósito:** Obtener un feed de actividades recientes de los proyectos en los que el usuario es miembro.
+- **Autorización:** Requiere autenticación.
+- **Parámetros de Consulta (Query):**
+    - `?project_id=1` (Opcional): Filtrar actividades por un proyecto específico.
+    - `?user_id=5` (Opcional): Filtrar actividades de un usuario específico.
+    - `?limit=10` (Opcional): Limitar el número de actividades (default: 10, max: 50).
+
+### `GET /api/evaluations/pending`
+- **Propósito:** Obtener las tareas que han sido enviadas y están pendientes de evaluación. Para el dashboard de docentes.
+- **Autorización:** Solo roles de plataforma `admin` o `teacher`.
+- **Parámetros de Consulta (Query):**
+    - `?project_id=1` (Opcional): Filtrar por un proyecto específico.
+    - `?limit=20` (Opcional): Limitar el número de resultados.
+
+### `GET /api/deadlines/upcoming`
+- **Propósito:** Obtener los próximos vencimientos (fin de sprints, hitos, etc.) relevantes para el usuario.
+- **Autorización:** Requiere autenticación.
+- **Parámetros de Consulta (Query):**
+    - `?days=30` (Opcional): Días a futuro a considerar (default: 30, max: 90).
+    - `?project_id=1` (Opcional): Filtrar por un proyecto específico.
+    - `?type=sprint_end` (Opcional): Filtrar por tipo de vencimiento (`sprint_end`, `evaluation_deadline`, etc.).
